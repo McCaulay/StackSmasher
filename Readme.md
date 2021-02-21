@@ -76,3 +76,6 @@ Executing Payload:
 ```sh
 ./vulnerable $(./smasher exploit payload vulnerable)
 ```
+
+![StackSmasher](https://user-images.githubusercontent.com/31845045/108642265-06a30800-749c-11eb-88bb-40d9aa6c987b.png)
+![Reverse Shell](https://user-images.githubusercontent.com/31845045/108642230-e4a98580-749b-11eb-8243-b90a4280ded4.png)
