@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
     if (Log::mode == LogMode::Verbose)
     {
         std::string python = "python -c 'print(\"";
-        for (uint32_t i = 0; i < payloadLength; i++)
+        for (uint32_t i = 0; i < payloadLength - 1; i++)
         {
             char buffer[5];
             sprintf(buffer, "\\x%02x", (uint8_t)(payload[i]));
