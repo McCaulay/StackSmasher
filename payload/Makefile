@@ -1,8 +1,15 @@
 RM = rm -f
-OUT = ../bin/payload
+RSHELL = ../bin/reverse-shell
+SH = ../bin/sh
 
-$(OUT): payload.asm
-	nasm -o $(OUT) -fbin payload.asm
+all: $(RSHELL) $(SH)
+
+$(RSHELL): reverse-shell.asm
+	nasm -o $(RSHELL) -fbin reverse-shell.asm
+
+$(SH): sh.asm
+	nasm -o $(SH) -fbin sh.asm
 
 clean:
-	$(RM) $(OUT)
+	$(RM) $(RSHELL)
+	$(RM) $(SH)
