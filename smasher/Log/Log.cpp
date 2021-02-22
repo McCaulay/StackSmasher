@@ -18,7 +18,7 @@ void Log::info(std::string format, ...)
 {
     if (Log::mode == LogMode::Verbose)
     {
-        format = std::string(LOG_COLOUR_BLUE) + "[-] " + std::string(LOG_COLOUR_NONE) + format;
+        format = std::string(LOG_COLOUR_BLUE) + "[*] " + std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
         va_start(argList, format);
         vprintf(format.c_str(), argList);
@@ -42,7 +42,7 @@ void Log::error(std::string format, ...)
 {
     if (Log::mode == LogMode::Verbose)
     {
-        format = std::string(LOG_COLOUR_RED) + "[x] " + std::string(LOG_COLOUR_NONE) + format;
+        format = std::string(LOG_COLOUR_RED) + "[!] " + std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
         va_start(argList, format);
         vprintf(format.c_str(), argList);
