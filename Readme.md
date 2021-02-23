@@ -3,9 +3,7 @@
 ## Description
 StackSmasher is an application which automatically performs a stack based buffer overflow on the target application. Currently it only supports attacking a vulnerable application through the application run time arguments. However, future modifications are to support various application inputs such as standard input and tcp input.
 
-It will rerun the application many times to fuzz the input until a segmentation fault occurs. It will then find the offset of EIP, as well as the address of a JMP ESP instructions.
-
-Finally it builds the final payload and outputs it.
+It will rerun the application many times to fuzz the input until a segmentation fault occurs. It will then find the offset of EIP, as well as the address of a JMP ESP instructions. Next it tests all characters to find any bad characters. Afterwards, it xor encodes the payload to obfuscate the payload and remove any bad characters. Finally it builds the final payload and outputs it.
 
 ## Modes
 The application has two modes, verbose which outputs the information it has found as well as the exploit as a python script. The other mode is exploit mode which only outputs the exploit payload.
