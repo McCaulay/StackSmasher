@@ -33,18 +33,25 @@ int main(int argc, char* argv[])
 
     std::string application = std::string(argv[3]);
 
+    // Ensure ASLR is disabled
+    if (Application::isAslrEnabled())
+    {
+        Log::error("ASLR is enabled but not supported by this application.\n");
+        return 3;
+    }
+
     // Read payload
     size_t rawPayloadSize = 0;
     uint8_t* rawayload = File::readAllBytes(std::string(argv[2]), &rawPayloadSize);
     if (rawayload == nullptr)
     {
-        Log::error("Failed to read the payload file...\n");
-        return 3;
+        Log::error("Failed to read the payload file.\n");
+        return 4;
     }
 
     // Run the fuzzer to find EIP
     if (!Fuzzer::run(application))
-        return 4;
+        return 5;
 
     // Find bad characters
     if (!BadCharacters::run(application))

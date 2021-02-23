@@ -52,14 +52,11 @@ void Log::success(std::string format, ...)
 
 void Log::error(std::string format, ...)
 {
-    if (Log::mode == LogMode::Verbose)
-    {
-        format = std::string(LOG_COLOUR_RED) + "[-] " + std::string(LOG_COLOUR_NONE) + format;
-        va_list argList;
-        va_start(argList, format);
-        vprintf(format.c_str(), argList);
-        va_end(argList);
-    }
+    format = std::string(LOG_COLOUR_RED) + "[-] " + std::string(LOG_COLOUR_NONE) + format;
+    va_list argList;
+    va_start(argList, format);
+    vprintf(format.c_str(), argList);
+    va_end(argList);
 }
 
 void Log::exploit(std::string format, ...)

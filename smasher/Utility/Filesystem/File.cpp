@@ -31,3 +31,23 @@ uint8_t* File::readAllBytes(std::string filepath, size_t* length)
 
     return data;
 }
+
+uint8_t* File::readBytes(std::string filepath, size_t length)
+{
+    // Open file
+    FILE* file = fopen(filepath.c_str(), "rb");
+    if (file == nullptr)
+        return nullptr;
+
+    // Allocate memory
+    uint8_t* data = (uint8_t*)malloc(length);
+
+    // Read file into memory
+    rewind(file);
+    fread(data, length, 1, file);
+
+    // Close file
+    fclose(file);
+
+    return data;
+}
