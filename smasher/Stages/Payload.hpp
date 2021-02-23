@@ -13,7 +13,7 @@ public:
     std::string get();
     Payload* padding(char character = 'A');
     Payload* eip();
-    Payload* nopSled(uint32_t length = 0x20);
+    Payload* nopSled(uint32_t length = 0x50);
     Payload* append(std::string input);
     Payload* badCharacters();
 private:
