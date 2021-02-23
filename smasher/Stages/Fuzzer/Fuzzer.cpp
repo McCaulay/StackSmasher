@@ -1,7 +1,5 @@
 #include "Stages/Fuzzer/Fuzzer.hpp"
 
-size_t Fuzzer::eipOffset = std::string::npos;
-void* Fuzzer::jmpEsp = nullptr;
 int Fuzzer::length = 0;
 
 bool Fuzzer::run(std::string application)
@@ -10,19 +8,19 @@ bool Fuzzer::run(std::string application)
     for (Fuzzer::length = 0; Fuzzer::length <= 0x20000; Fuzzer::length += 0x10)
     {
         Debugger::exec(application, { Pattern::create(Fuzzer::length) }, Fuzzer::handle);
-        if (Fuzzer::jmpEsp == nullptr)
+        if (Application::jmpEsp == nullptr)
             return false;
 
-        if (Fuzzer::eipOffset != std::string::npos)
+        if (Application::eipOffset != std::string::npos)
         {
-            Log::success("EIP found at offset 0x%x with length of 0x%x\n", Fuzzer::eipOffset, Fuzzer::length);
+            Log::success("EIP found at offset 0x%x with length of 0x%x\n", Application::eipOffset, Fuzzer::length);
             break;
         }
     }
 
-    if (Fuzzer::eipOffset == std::string::npos)
+    if (Application::eipOffset == std::string::npos)
         Log::error("Fuzzer failed to find EIP\n");
-    return Fuzzer::eipOffset != std::string::npos;
+    return Application::eipOffset != std::string::npos;
 }
 
 void Fuzzer::handle(Debugger* debugger)
@@ -37,12 +35,12 @@ void Fuzzer::handle(Debugger* debugger)
             // If we have hit a trap, continue
             if (status.getPauseSignal() == SIGTRAP)
             {
-                if (Fuzzer::jmpEsp == nullptr)
-                    Fuzzer::jmpEsp = Fuzzer::findJumpEsp(debugger);
+                if (Application::jmpEsp == nullptr)
+                    Application::jmpEsp = Fuzzer::findJumpEsp(debugger);
 
                 debugger->pContinue();
 
-                if (Fuzzer::jmpEsp == nullptr)
+                if (Application::jmpEsp == nullptr)
                     return;
                 continue;
             }
@@ -53,7 +51,8 @@ void Fuzzer::handle(Debugger* debugger)
             {
                 user_regs_struct registers;
                 debugger->getRegisters(&registers);
-                Fuzzer::eipOffset = Pattern::offset(registers.eip, Fuzzer::length);
+                Application::eipOffset = Pattern::offset(registers.eip, Fuzzer::length);
+                debugger->pKill();
                 return;
             }
         }
@@ -86,16 +85,6 @@ void* Fuzzer::findJumpEsp(Debugger* debugger)
     }
     Mapping::freeAll(mappings);
     return nullptr;
-}
-
-size_t Fuzzer::getEipOffset()
-{
-    return Fuzzer::eipOffset;
-}
-
-void* Fuzzer::getJmpEsp()
-{
-    return Fuzzer::jmpEsp;
 }
 
 int Fuzzer::getLength()

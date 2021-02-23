@@ -33,6 +33,11 @@ void Debugger::pStep()
     ptrace(PTRACE_SINGLESTEP, this->process->getId(), (void*)1, NULL);
 }
 
+void Debugger::pKill()
+{
+    ptrace(PTRACE_KILL, this->process->getId(), NULL, NULL);
+}
+
 void Debugger::getRegisters(user_regs_struct* registers)
 {
     ptrace(PTRACE_GETREGS, this->process->getId(), NULL, registers);

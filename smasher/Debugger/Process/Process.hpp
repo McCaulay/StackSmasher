@@ -18,6 +18,8 @@ public:
     pid_t getId();
     ProcessState wait();
     Mapping::MappingIterator* getMappings();
+    uint8_t* read(void* address, size_t length);
+    void write(void* address, uint8_t* buffer, size_t length);
 private:
     pid_t id;
 };

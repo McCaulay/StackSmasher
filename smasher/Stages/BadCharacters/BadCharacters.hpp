@@ -1,19 +1,20 @@
 #pragma once
 
 #include <string>
-#include <sys/wait.h>
 #include "Stages/Application.hpp"
-#include "Stages/Fuzzer/Pattern/Pattern.hpp"
+#include "Stages/Payload.hpp"
 #include "Debugger/Debugger.hpp"
 #include "Log/Log.hpp"
 
-class Fuzzer
+class BadCharacters
 {
 public:
 	static bool run(std::string application);
     static void handle(Debugger* debugger);
-    static void* findJumpEsp(Debugger* debugger);
-    static int getLength();
 private:
-    static int length;
+    static std::string getPayload();
+private:
+    static uint8_t current;
+    static bool hitInitialBreakpoint;
+    static bool completed;
 };

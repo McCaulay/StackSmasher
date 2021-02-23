@@ -1,14 +1,11 @@
 #include "Encoder/XorEncoder.hpp"
 
-std::string XorEncoder::encode(uint8_t* buffer, size_t length)
+std::string XorEncoder::encode(uint8_t* buffer, size_t length, uint8_t* badCharacters, size_t badCharactersLength)
 {
-    uint8_t* badCharacters = (uint8_t*)"\x00\x0a\x0d";
-    size_t badCharacterLength = 3;
-
     std::string stub = XorEncoder::getStub();
 
     // Issue a warning if any of the bad chars are found within the decoder itself.
-    if (XorEncoder::bufferContainsAny((uint8_t*)stub.c_str(), stub.length(), badCharacters, badCharacterLength))
+    if (XorEncoder::bufferContainsAny((uint8_t*)stub.c_str(), stub.length(), badCharacters, badCharactersLength))
         Log::warning("One or more bad chars were found in the decoder stub\n");
 
     // Loop through the shellcode in 2 byte chunks and find a byte to XOR them
@@ -18,7 +15,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length)
     std::string encoded = "";
     for (uint32_t i = 0; i < length; i += 2)
     {
-        uint8_t xorByte = XorEncoder::findValidXorByte(buffer + i, 2, badCharacters, badCharacterLength);
+        uint8_t xorByte = XorEncoder::findValidXorByte(buffer + i, 2, badCharacters, badCharactersLength);
 
         if (xorByte == 0x00)
         {
@@ -44,7 +41,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length)
     // Find a byte that does not appear in the decoder stub or the encoded
     // shellcode which can be used as an EOF delimiter.
     std::string payload = stub + encoded;
-    uint8_t xorByte = XorEncoder::findValidXorByte((uint8_t*)payload.c_str(), payload.length(), badCharacters, badCharacterLength);
+    uint8_t xorByte = XorEncoder::findValidXorByte((uint8_t*)payload.c_str(), payload.length(), badCharacters, badCharactersLength);
 
     if (xorByte == 0x00)
     {

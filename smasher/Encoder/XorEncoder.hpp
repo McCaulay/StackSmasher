@@ -14,7 +14,7 @@
 class XorEncoder
 {
 public:
-	static std::string encode(uint8_t* buffer, size_t length);
+	static std::string encode(uint8_t* buffer, size_t length, uint8_t* badCharacters, size_t badCharactersLength);
 private:
     // See encoders/xor.asm
     static std::string getStub();
