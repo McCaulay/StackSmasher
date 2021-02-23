@@ -32,4 +32,4 @@ call_shellcode:
     call   shellcode
 
 message:
-    db    "/bin/shABBBBCCCC"
+    db    "/bin/sh"
