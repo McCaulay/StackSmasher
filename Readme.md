@@ -76,7 +76,6 @@ make
 - [ ] Support multiple output languages (C / Golang / Ruby etc)
 - [ ] Move shellcode to inside padding then decrease ESP, JMP ESP?
 - [ ] Validate there is enough space for payload
-- [ ] --auto-pwn flag, to automatically send the final payload.
 - [ ] Support more application input types (interactive, stdin, network).
 - [ ] Support more encoders.
 - [ ] Preset list of payloads. (sh, reverse shell)

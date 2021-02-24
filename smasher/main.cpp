@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
     program.add_argument("-v", "--verbose").help("Verbosity level: 0-4").nargs(1).default_value(1).action([](const std::string& value) { return std::stoi(value); });
     program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
     program.add_argument("-q", "--quiet").help("Do not print the start header").default_value(false).implicit_value(true);
+    program.add_argument("-e", "--exploit").help("Automatically run the full payload against the application").default_value(false).implicit_value(true);
     program.add_argument("--python").help("Print the exploit as a python script").default_value(false).implicit_value(true);
     program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway").default_value(false).implicit_value(true);
     program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters").default_value(false).implicit_value(true);
@@ -112,7 +113,10 @@ int main(int argc, char* argv[])
         Log::success(VerbosityLevel::Standard, "[%i bytes] python -c 'print(\"%s\")'\n", payload.length(), python.c_str());
     }
 
-    Log::success(VerbosityLevel::Standard, "Executing application with payload...\n_________________________________________\n\n");
-    Process::exec(application, { payload });
+    if (program["--exploit"] == true)
+    {
+        Log::success(VerbosityLevel::Standard, "Executing application with payload...\n_________________________________________\n\n");
+        Process::exec(application, { payload });
+    }
     return 0;
 }
