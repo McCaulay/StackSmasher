@@ -6,6 +6,7 @@
 #include "Payloads/Execute/Execute.hpp"
 #include "Payloads/BindShell/BindShell.hpp"
 #include "Payloads/ReverseShell/ReverseShell.hpp"
+#include "Payloads/Shutdown/Shutdown.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
@@ -15,8 +16,8 @@ int main(int argc, char* argv[])
     // Arguments
     argparse::ArgumentParser program("StackSmasher", "1.0.0");
     program.add_argument("application").help("The target application being tested");
-    program.add_argument("-p", "--payload").help("The built-in payload to use. [execute, bind-shell, reverse-shell]").nargs(1).default_value(std::string("execute")).action([](const std::string& value) {
-        static const std::vector<std::string> choices = { "execute", "bind-shell", "reverse-shell" };
+    program.add_argument("-p", "--payload").help("The built-in payload to use. [execute, bind-shell, reverse-shell, shutdown]").nargs(1).default_value(std::string("execute")).action([](const std::string& value) {
+        static const std::vector<std::string> choices = { "execute", "bind-shell", "reverse-shell", "shutdown" };
         if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
             return value;
         }
@@ -94,6 +95,8 @@ int main(int argc, char* argv[])
             rawPayload = ReverseShell::getPayload(&rawPayloadSize, program);
         else if (payloadType == "bind-shell")
             rawPayload = BindShell::getPayload(&rawPayloadSize, program);
+        else if (payloadType == "shutdown")
+            rawPayload = Shutdown::getPayload(&rawPayloadSize, program);
     }
 
     // Run the fuzzer to find EIP

@@ -4,7 +4,7 @@ uint8_t* BindShell::getPayload(size_t* length, argparse::ArgumentParser program)
 {
     uint16_t port = (uint16_t)program.get<int>("--shell-port");
 
-    size_t len = 74;
+    size_t len = 89;
     if (length != nullptr)
         *length = len;
     
