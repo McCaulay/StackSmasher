@@ -1,10 +1,10 @@
 #include "Log/Log.hpp"
 
-LogMode Log::mode = LogMode::Verbose;
+VerbosityLevel Log::verbose = VerbosityLevel::Standard;
 
-void Log::print(std::string format, ...)
+void Log::print(VerbosityLevel level, std::string format, ...)
 {
-    if (Log::mode == LogMode::Verbose)
+    if (Log::verbose >= level)
     {
         format = std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
@@ -14,9 +14,9 @@ void Log::print(std::string format, ...)
     }
 }
 
-void Log::info(std::string format, ...)
+void Log::info(VerbosityLevel level, std::string format, ...)
 {
-    if (Log::mode == LogMode::Verbose)
+    if (Log::verbose >= level)
     {
         format = std::string(LOG_COLOUR_BLUE) + "[*] " + std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
@@ -26,9 +26,9 @@ void Log::info(std::string format, ...)
     }
 }
 
-void Log::warning(std::string format, ...)
+void Log::warning(VerbosityLevel level, std::string format, ...)
 {
-    if (Log::mode == LogMode::Verbose)
+    if (Log::verbose >= level)
     {
         format = std::string(LOG_COLOUR_ORANGE) + "[!] " + std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
@@ -38,9 +38,9 @@ void Log::warning(std::string format, ...)
     }
 }
 
-void Log::success(std::string format, ...)
+void Log::success(VerbosityLevel level, std::string format, ...)
 {
-    if (Log::mode == LogMode::Verbose)
+    if (Log::verbose >= level)
     {
         format = std::string(LOG_COLOUR_GREEN) + "[+] " + std::string(LOG_COLOUR_NONE) + format;
         va_list argList;
@@ -50,18 +50,21 @@ void Log::success(std::string format, ...)
     }
 }
 
-void Log::error(std::string format, ...)
+void Log::error(VerbosityLevel level, std::string format, ...)
 {
-    format = std::string(LOG_COLOUR_RED) + "[-] " + std::string(LOG_COLOUR_NONE) + format;
-    va_list argList;
-    va_start(argList, format);
-    vprintf(format.c_str(), argList);
-    va_end(argList);
+    if (Log::verbose >= level)
+    {
+        format = std::string(LOG_COLOUR_RED) + "[-] " + std::string(LOG_COLOUR_NONE) + format;
+        va_list argList;
+        va_start(argList, format);
+        vprintf(format.c_str(), argList);
+        va_end(argList);
+    }
 }
 
-void Log::exploit(std::string format, ...)
+void Log::exploit(VerbosityLevel level, std::string format, ...)
 {
-    if (Log::mode == LogMode::Exploit)
+    if (Log::verbose >= level)
     {
         va_list argList;
         va_start(argList, format);

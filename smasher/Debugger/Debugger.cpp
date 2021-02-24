@@ -6,7 +6,7 @@ void Debugger::exec(std::string path, std::vector<std::string> arguments, void (
     if (child == 0)
     {
         ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-        Process::exec(path, arguments);
+        Process::execFork(path, arguments);
         return;
     }
     

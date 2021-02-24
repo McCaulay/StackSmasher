@@ -2,14 +2,13 @@
 
 void Process::exec(std::string path, std::vector<std::string> arguments)
 {
-    std::vector<char*> args;
-	args.push_back((char*)path.c_str());
+    std::vector<char*> args = Process::getArguments(path, arguments);
+	execv(args[0], &args.front());
+}
 
-    // Append each argument
-    for(std::vector<std::string>::iterator it = arguments.begin(); it != arguments.end(); ++it)
-        args.push_back((char*)((*it).c_str()));
-
-	args.push_back(NULL);
+void Process::execFork(std::string path, std::vector<std::string> arguments)
+{
+    std::vector<char*> args = Process::getArguments(path, arguments);
 
     // Redirect stdout and stderr to /dev/null
     int devnull = open("/dev/null", O_WRONLY);
@@ -19,6 +18,19 @@ void Process::exec(std::string path, std::vector<std::string> arguments)
 
 	execv(args[0], &args.front());
     exit(0);
+}
+
+std::vector<char*> Process::getArguments(std::string path, std::vector<std::string> arguments)
+{
+    std::vector<char*> args;
+	args.push_back((char*)path.c_str());
+
+    // Append each argument
+    for(std::vector<std::string>::iterator it = arguments.begin(); it != arguments.end(); ++it)
+        args.push_back((char*)((*it).c_str()));
+
+	args.push_back(NULL);
+    return args;
 }
 
 Process::Process(pid_t pid)

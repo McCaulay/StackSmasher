@@ -12,7 +12,7 @@ SMASHER_CPP := $(shell find $(SMASHER_SRC) -name '*.cpp')
 all: $(SMASHER) $(RSHELL) $(SH) $(VULNEABLE) $(XOR)
 
 $(SMASHER): smasher/main.cpp
-	g++ -o $(SMASHER) $(SMASHER_CPP) -m32 -I./smasher
+	g++ -o $(SMASHER) $(SMASHER_CPP) -m32 -std=c++17 -I./smasher
 
 $(RSHELL): payload/reverse-shell.asm
 	nasm -o $(RSHELL) -fbin payload/reverse-shell.asm

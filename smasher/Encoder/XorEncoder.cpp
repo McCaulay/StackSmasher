@@ -6,7 +6,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length, uint8_t* badChara
 
     // Issue a warning if any of the bad chars are found within the decoder itself.
     if (XorEncoder::bufferContainsAny((uint8_t*)stub.c_str(), stub.length(), badCharacters, badCharactersLength))
-        Log::warning("One or more bad chars were found in the decoder stub\n");
+        Log::warning(VerbosityLevel::Standard, "One or more bad chars were found in the decoder stub\n");
 
     // Loop through the shellcode in 2 byte chunks and find a byte to XOR them
     // with, each time prepending the XOR byte to the encoded chunk.
@@ -19,7 +19,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length, uint8_t* badChara
 
         if (xorByte == 0x00)
         {
-            Log::error("Failed to find a valid XOR byte to encode chunk %i", chunkIndex + 1);
+            Log::error(VerbosityLevel::Standard, "Failed to find a valid XOR byte to encode chunk %i", chunkIndex + 1);
             return nullptr;
         }
 
@@ -45,7 +45,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length, uint8_t* badChara
 
     if (xorByte == 0x00)
     {
-        Log::error("Failed to find a valid XOR byte for the delimiter");
+        Log::error(VerbosityLevel::Standard, "Failed to find a valid XOR byte for the delimiter");
         return nullptr;
     }
 

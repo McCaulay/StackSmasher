@@ -22,16 +22,23 @@
 #define LOG_COLOUR_CYAN_LIGHT "\033[1;36m"
 #define LOG_COLOUR_GRAY_LIGHT "\033[0;37m"
 
-enum LogMode { Verbose, Exploit };
+enum VerbosityLevel
+{
+    None = 0,
+    Standard = 1,
+    Verbose = 2,
+    VeryVerbose = 3,
+    Debug = 4,
+};
 
 class Log
 {
 public:
-    static void print(std::string format, ...);
-    static void info(std::string format, ...);
-    static void warning(std::string format, ...);
-    static void success(std::string format, ...);
-	static void error(std::string format, ...);
-	static void exploit(std::string format, ...);
-    static LogMode mode;
+    static void print(VerbosityLevel level, std::string format, ...);
+    static void info(VerbosityLevel level, std::string format, ...);
+    static void warning(VerbosityLevel level, std::string format, ...);
+    static void success(VerbosityLevel level, std::string format, ...);
+	static void error(VerbosityLevel level, std::string format, ...);
+	static void exploit(VerbosityLevel level, std::string format, ...);
+    static VerbosityLevel verbose;
 };

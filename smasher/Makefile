@@ -6,7 +6,7 @@ SRC ?= ./
 CPP := $(shell find $(SRC) -name '*.cpp')
 
 $(OUT): main.cpp
-	$(CC) -o $(OUT) $(CPP) -m32 -I.
+	$(CC) -o $(OUT) $(CPP) -m32 -std=c++17 -I.
 
 clean:
 	$(RM) $(OUT)

@@ -12,6 +12,9 @@ class Process
 {
 public:
     static void exec(std::string path, std::vector<std::string> arguments);
+    static void execFork(std::string path, std::vector<std::string> arguments);
+private:
+    static std::vector<char*> getArguments(std::string path, std::vector<std::string> arguments);
 public:
     Process(pid_t pid);
     ~Process();
