@@ -11,7 +11,7 @@ It will rerun the application many times to fuzz the input until a segmentation 
 ```
 
 Example Output:
-```sh
+```
    _____ __             __   _____                      __             
   / ___// /_____ ______/ /__/ ___/____ ___  ____ ______/ /_  ___  _____
   \__ \/ __/ __ `/ ___/ //_/\__ \/ __ `__ \/ __ `/ ___/ __ \/ _ \/ ___/
@@ -71,10 +71,11 @@ make
 ```
 
 # Improvements
-- [ ] Argument to disable coloured output.
 - [ ] Debug and fix the bug which causes payload not to work on some occasions. If not encoded, sh.bin works but reverse-shell.bin doesnt. Encoding makes results random. Possibly a bad character that isn't picked up on the bad character functionality? Other potential reasons could be bad character at a specific index only?
 - [ ] Save python script to file. Output with comments and building up the payload instead of a full payload string.
 - [ ] Support multiple output languages (C / Golang / Ruby etc)
+- [ ] Move shellcode to inside padding then decrease ESP, JMP ESP?
+- [ ] Validate there is enough space for payload
 - [ ] --auto-pwn flag, to automatically send the final payload.
 - [ ] Support more application input types (interactive, stdin, network).
 - [ ] Support more encoders.

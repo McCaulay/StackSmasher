@@ -25,15 +25,7 @@ std::string XorEncoder::encode(uint8_t* buffer, size_t length, uint8_t* badChara
 
         encoded += (uint8_t)xorByte;
         for (uint32_t j = 0; j < 2; j++)
-        {
             encoded += (j < length - i) ? (uint8_t)(buffer[i + j] ^ xorByte) : (uint8_t)xorByte;
-
-            // printf("AA: %i < %i\n", j, length - i);
-            // if (j < length - i)
-            //     printf("A: %02x%02x -> %02x\n", buffer[i], buffer[i + 1], (uint8_t)(buffer[i + j] ^ xorByte));
-            // else
-            //     printf("B: %02x -> %02x\n",  buffer[i], (uint8_t)xorByte);
-        }
 
         chunkIndex++;
     }

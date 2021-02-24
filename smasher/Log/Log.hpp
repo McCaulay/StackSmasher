@@ -39,6 +39,8 @@ public:
     static void warning(VerbosityLevel level, std::string format, ...);
     static void success(VerbosityLevel level, std::string format, ...);
 	static void error(VerbosityLevel level, std::string format, ...);
-	static void exploit(VerbosityLevel level, std::string format, ...);
     static VerbosityLevel verbose;
+    static bool colour;
+private:
+    static std::string getPrefix(std::string icon, const std::string colour);
 };

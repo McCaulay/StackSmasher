@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
     program.add_argument("--python").help("Print the exploit as a python script").default_value(false).implicit_value(true);
     program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway").default_value(false).implicit_value(true);
     program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters").default_value(false).implicit_value(true);
+    program.add_argument("--no-colour").help("Do not output ANSI escape codes to show colours.").default_value(false).implicit_value(true);
 
     // Argument Parsing
     try {
@@ -30,20 +31,21 @@ int main(int argc, char* argv[])
         exit(0);
     }
 
+    Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
+    Log::colour = program["--no-colour"] == false;
+    std::string application = program.get<std::string>("application");
+
     // Header
     if (program["--quiet"] == false)
     {
-        std::cout << "   _____ __             __   _____                      __             " << std::endl;
-        std::cout << "  / ___// /_____ ______/ /__/ ___/____ ___  ____ ______/ /_  ___  _____" << std::endl;
-        std::cout << "  \\__ \\/ __/ __ `/ ___/ //_/\\__ \\/ __ `__ \\/ __ `/ ___/ __ \\/ _ \\/ ___/" << std::endl;
-        std::cout << " ___/ / /_/ /_/ / /__/ ,<  ___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
-        std::cout << "/____/\\__/\\__,_/\\___/_/|_|/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
-        std::cout << "                                                                       " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "   _____ __             __   " << (Log::colour ? LOG_COLOUR_GREEN : "") << "_____                      __             " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "  / ___// /_____ ______/ /__" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/ ___/____ ___  ____ ______/ /_  ___  _____" << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "  \\__ \\/ __/ __ `/ ___/ //_/" << (Log::colour ? LOG_COLOUR_GREEN : "") << "\\__ \\/ __ `__ \\/ __ `/ ___/ __ \\/ _ \\/ ___/" << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << " ___/ / /_/ /_/ / /__/ ,<  " << (Log::colour ? LOG_COLOUR_GREEN : "") << "___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "/____/\\__/\\__,_/\\___/_/|_|" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_NONE : "") << "                                                                       " << std::endl;
         std::cout << "                    By https://github.com/McCaulay                     " << std::endl << std::endl;
     }
-
-    Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
-    std::string application = program.get<std::string>("application");
 
     // Ensure ASLR is disabled
     if (program["--skip-aslr-check"] == false && Application::isAslrEnabled())

@@ -23,7 +23,9 @@ bool BadCharacters::run(std::string application)
         sprintf(buffer, "\\x%02x", Application::badCharacters[i]);
         formatted += std::string(buffer);
     }
-    Log::success(VerbosityLevel::Standard, "Found %i bad characters: %s\n", Application::badCharacters.size(), formatted.c_str());
+
+    Log::success(VerbosityLevel::Standard, "Found %i bad characters", Application::badCharacters.size());
+    Log::print(VerbosityLevel::Standard, ": %s\n", formatted.c_str());
 
     return true;
 }
