@@ -6,21 +6,32 @@ StackSmasher is an application which automatically performs a stack based buffer
 It will rerun the application many times to fuzz the input until a segmentation fault occurs. It will then find the offset of EIP, as well as the address of a JMP ESP instructions. Next it tests all characters to find any bad characters. Afterwards, it xor encodes the payload to obfuscate the payload and remove any bad characters. Finally it builds the final payload and outputs it.
 
 ## Running StackSmasher
-![StackSmasher](https://user-images.githubusercontent.com/31845045/109032198-56144e80-76bd-11eb-9699-f7145c262833.png)
-
 ```sh
 ./smasher vulnerable
 ```
 
 Example Output:
 ```sh
+   _____ __             __   _____                      __             
+  / ___// /_____ ______/ /__/ ___/____ ___  ____ ______/ /_  ___  _____
+  \__ \/ __/ __ `/ ___/ //_/\__ \/ __ `__ \/ __ `/ ___/ __ \/ _ \/ ___/
+ ___/ / /_/ /_/ / /__/ ,<  ___/ / / / / / / /_/ (__  ) / / /  __/ /    
+/____/\__/\__,_/\___/_/|_|/____/_/ /_/ /_/\__,_/____/_/ /_/\___/_/     
+                                                                       
+                    By https://github.com/McCaulay                     
+
 [*] Fuzzing EIP and finding JMP ESP...
 [+] Found JMP ESP at 0x565561fe
-[+] EIP found at offset 0x51e with length of 0x530
+[+] EIP found at offset 0x51e with a padding length of 0x530
 [*] Finding bad characters...
 [+] Found 4 bad characters: \x00\x0a\x0d\x43
 [*] XOR encoding payload...
 [+] Executing application with payload...
+_________________________________________
+
+Hello AAAAAAAAAAAAAAAAAAAA...(truncated)
+$ pwd
+/home/mccaulay/StackSmasher/bin
 ```
 
 ## Limitations
@@ -60,6 +71,7 @@ make
 ```
 
 # Improvements
+- [ ] Argument to disable coloured output.
 - [ ] Debug and fix the bug which causes payload not to work on some occasions. If not encoded, sh.bin works but reverse-shell.bin doesnt. Encoding makes results random. Possibly a bad character that isn't picked up on the bad character functionality? Other potential reasons could be bad character at a specific index only?
 - [ ] Save python script to file. Output with comments and building up the payload instead of a full payload string.
 - [ ] Support multiple output languages (C / Golang / Ruby etc)

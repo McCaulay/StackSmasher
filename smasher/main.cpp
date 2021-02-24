@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
     program.add_argument("-p", "--payload").help("The binary payload file to be sent").nargs(1).default_value(std::string("payloads/sh.bin"));
     program.add_argument("-v", "--verbose").help("Verbosity level: 0-4").nargs(1).default_value(1).action([](const std::string& value) { return std::stoi(value); });
     program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
+    program.add_argument("-q", "--quiet").help("Do not print the start header").default_value(false).implicit_value(true);
     program.add_argument("--python").help("Print the exploit as a python script").default_value(false).implicit_value(true);
     program.add_argument("--skip-aslr-check").help("Skip checking if ASLR is enabled and proceed anyway").default_value(false).implicit_value(true);
     program.add_argument("--skip-encoding").help("Skip encoding the payload and checking bad characters").default_value(false).implicit_value(true);
@@ -27,6 +28,18 @@ int main(int argc, char* argv[])
         std::cout << err.what() << std::endl << std::endl;
         std::cout << program;
         exit(0);
+    }
+
+    // Header
+    if (program["--quiet"] == false)
+    {
+        std::cout << "   _____ __             __   _____                      __             " << std::endl;
+        std::cout << "  / ___// /_____ ______/ /__/ ___/____ ___  ____ ______/ /_  ___  _____" << std::endl;
+        std::cout << "  \\__ \\/ __/ __ `/ ___/ //_/\\__ \\/ __ `__ \\/ __ `/ ___/ __ \\/ _ \\/ ___/" << std::endl;
+        std::cout << " ___/ / /_/ /_/ / /__/ ,<  ___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
+        std::cout << "/____/\\__/\\__,_/\\___/_/|_|/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
+        std::cout << "                                                                       " << std::endl;
+        std::cout << "                    By https://github.com/McCaulay                     " << std::endl << std::endl;
     }
 
     Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
