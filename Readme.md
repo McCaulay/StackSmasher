@@ -1,5 +1,8 @@
 # StackSmasher
 
+## Disclaimer
+This project was built to advance my knowledge of buffer overflows, debuggers, registers, assembly and programming languages. I am sure this sure this software will contain vulnerabiities itself, as I do not have lots of experience with C or C++. I would appreciate any pull requests to fix any bugs or vulnerabilities.
+
 ## Description
 StackSmasher is an application which automatically performs a stack based buffer overflow on the target application. Currently it only supports attacking a vulnerable application through the application run time arguments. However, future modifications are to support various application inputs such as standard input and tcp input.
 
