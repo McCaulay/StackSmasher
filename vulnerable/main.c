@@ -32,7 +32,7 @@ void printHello(char *name)
     removeChar(name, '\x43');
 
     // Allocate 0x200 bytes for the name
-    char c[0x200];
+    char c[0x512];
 
     // Copy the name to the buffer (unsafe, stackoverflow part)
     strcpy(c, name);

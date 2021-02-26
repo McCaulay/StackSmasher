@@ -11,6 +11,7 @@
 #include "Script/Python/Python.hpp"
 #include "Script/Go/Go.hpp"
 #include "Script/C/C.hpp"
+#include "Script/Ruby/Ruby.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
@@ -32,8 +33,8 @@ int main(int argc, char* argv[])
     program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell.").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
     program.add_argument("-q", "--quiet").help("Do not print the start header.").default_value(false).implicit_value(true);
     program.add_argument("-e", "--exploit").help("Automatically run the full payload against the application.").default_value(false).implicit_value(true);
-    program.add_argument("-s", "--script").help("Save the exploit as a script for the given language. [python, go, c]").nargs(1).default_value(std::string("")).action([](const std::string& value) {
-        static const std::vector<std::string> choices = { "python", "go", "c" };
+    program.add_argument("-s", "--script").help("Save the exploit as a script for the given language. [python, go, c, ruby]").nargs(1).default_value(std::string("")).action([](const std::string& value) {
+        static const std::vector<std::string> choices = { "python", "go", "c" "ruby" };
         if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
             return value;
         }
@@ -153,6 +154,8 @@ int main(int argc, char* argv[])
             scripter = new Go();
         else if (script == "c")
             scripter = new C();
+        else if (script == "ruby")
+            scripter = new Ruby();
     }
 
     // Build payload
