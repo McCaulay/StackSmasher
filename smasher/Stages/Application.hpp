@@ -11,6 +11,7 @@ public:
     static bool isAslrEnabled();
 public:
     static std::string name;
+    static std::string exploitName;
     static size_t eipOffset;
     static void* jmpEsp;
     static std::vector<uint8_t> badCharacters;

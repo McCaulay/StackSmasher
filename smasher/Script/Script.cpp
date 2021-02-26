@@ -11,7 +11,7 @@ Script::Script()
 
 void Script::save(std::string filename)
 {
-    filename = filename == "" ? Application::name + "-exploit" : filename;
+    filename = filename == "" ? Application::name + "-" + Application::exploitName : filename;
     File::writeString(filename + "." + this->getExtension(), this->build());
     Log::success(VerbosityLevel::Standard, "Saved exploit to " + filename + "." + this->getExtension() + "\n");
 

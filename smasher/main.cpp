@@ -88,17 +88,29 @@ int main(int argc, char* argv[])
     std::string payloadFile = program.get<std::string>("--payload-file");
     if (!payloadFile.empty())
     {
-        rawPayload = File::readAllBytes(program.get<std::string>("--payload-file"), &rawPayloadSize);
+        rawPayload = File::readAllBytes(payloadFile, &rawPayloadSize);
         if (rawPayload == nullptr)
         {
             Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
             return 4;
+        }
+
+        // Set exploitName, eg: from /home/kali/play-sound.bin -> play-sound
+        size_t lastDotIndex = payloadFile.find_last_of("."); 
+        Application::exploitName = lastDotIndex != std::string::npos ? payloadFile.substr(0, lastDotIndex) : payloadFile; 
+
+        size_t lastSlashIndex = payloadFile.find_last_of("/"); 
+        if (lastSlashIndex != std::string::npos)
+        {
+            lastSlashIndex++;
+            Application::exploitName = Application::exploitName.substr(lastSlashIndex, Application::exploitName.length() - lastSlashIndex);
         }
     }
     else
     {
         // Get built-in payload
         std::string payloadType = program.get<std::string>("--payload");
+        Application::exploitName = payloadType;
         if (payloadType == "execute")
             rawPayload = Execute::getPayload(&rawPayloadSize, program);
         else if (payloadType == "reverse-shell")
