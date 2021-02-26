@@ -34,6 +34,32 @@ $ pwd
 /home/mccaulay/StackSmasher/bin
 ```
 
+Help:
+```
+Usage: StackSmasher [options] application 
+
+Positional arguments:
+application           	The target application being tested
+
+Optional arguments:
+-h --help             	Shows help message and exists
+--version             	Show program's version number and exit
+-p --payload          	The built-in payload to use. [execute, bind-shell, reverse-shell, shutdown] [default: "execute"]
+-pf --payload-file    	The binary payload file to be sent instead of built-in payload. [default: ""]
+-v --verbose          	Verbosity level: 0-4. [default: 1]
+-n --nops             	The number of NOPs to put in the NOP sled before the shell. [default: 20]
+-q --quiet            	Do not print the start header. [default: false]
+-e --exploit          	Automatically run the full payload against the application. [default: false]
+-s --script           	Save the exploit as a script for the given language. [python, go, c] [default: ""]
+-sf --script-filename 	The filename without extension the script should be saved as if --script is passed. [default: ""]
+--binary              	The binary the application should execute if a built-in payload is selected. [default: "/bin/sh"]
+--shell-ip            	The IP address a reverse shell should connect to. [default: "127.0.0.1"]
+--shell-port          	The port number a bind shoud listen on or a reverse shell should connect to. [default: 1337]
+--skip-aslr-check     	Skip checking if ASLR is enabled and proceed anyway. [default: false]
+--skip-encoding       	Skip encoding the payload and checking bad characters. [default: false]
+--no-colour           	Do not output ANSI escape codes to show colours. [default: false]
+```
+
 ## Limitations
 Various settings must be disabled for this to work including DEP, NX, and ASLR. ASLR needs to be done manually using the following script. This application also only works against 32 bit applications.
 
