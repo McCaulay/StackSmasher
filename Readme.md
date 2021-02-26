@@ -104,15 +104,14 @@ make
 
 # Improvements
 - [ ] Debug and fix the bug which causes payload not to work on some occasions. If not encoded, sh.bin works but reverse-shell.bin doesnt. Encoding makes results random. Possibly a bad character that isn't picked up on the bad character functionality? Other potential reasons could be bad character at a specific index only?
-- [ ] Support multiple output languages (Ruby etc)
-- [ ] Move shellcode to inside padding then decrease ESP, JMP ESP?
-- [ ] Validate there is enough space for payload
-- [ ] Support more application input types (interactive, stdin, network).
-- [ ] Support more encoders.
-- [ ] Support x64
-- [ ] ROP Chains
-- [ ] Ret2Libc
-- [ ] Windows
 - [ ] Search library memory for JMP ESP
 - [ ] Support alternatives to JMP ESP
 - [ ] Support payload prefix and suffix (--template file?)
+- [ ] Support more application input types (interactive, stdin, network).
+- [ ] Validate there is enough space for payload
+- [ ] Move shellcode to inside padding then decrease ESP, JMP ESP?
+- [ ] Support x64
+- [ ] ROP Chains
+- [ ] Support more encoders.
+- [ ] Ret2Libc
+- [ ] Windows

@@ -229,6 +229,15 @@ void Mapping::write(void* address, uint8_t* buffer, size_t length)
 
 void* Mapping::search(std::vector<uint8_t> pattern)
 {
+    std::string searchPattern = "";
+    for (std::vector<uint8_t>::iterator it = pattern.begin(); it != pattern.end(); it++)
+    {
+        char buffer[7];
+        sprintf(buffer, "\\x%02x", *it);
+        searchPattern += std::string(buffer);
+    }
+    Log::info(VerbosityLevel::VeryVerbose, "Searching %p to %p for %s\n", this->addr_start, this->addr_end, searchPattern.c_str());
+
     for (uint32_t address = (uint32_t)this->addr_start; address < (uint32_t)this->addr_end; address += 0x1000)
     {
         uint8_t* buffer = this->read((void*)address, 0x1000);

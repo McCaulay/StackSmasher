@@ -7,9 +7,13 @@ bool Fuzzer::run(std::string application)
     Log::info(VerbosityLevel::Standard, "Fuzzing EIP and finding JMP ESP...\n");
     for (Fuzzer::length = 0; Fuzzer::length <= 0x20000; Fuzzer::length += 0x10)
     {
+        Log::info(VerbosityLevel::Debug, "Fuzzing with length 0x%05x\n", Fuzzer::length);
         Debugger::exec(application, { Pattern::create(Fuzzer::length) }, Fuzzer::handle);
         if (Application::jmpEsp == nullptr)
+        {
+            Log::error(VerbosityLevel::Standard, "Fuzzer failed to find JMP ESP\n");
             return false;
+        }
 
         if (Application::eipOffset != std::string::npos)
         {
@@ -63,28 +67,11 @@ void Fuzzer::handle(Debugger* debugger)
 
 void* Fuzzer::findJumpEsp(Debugger* debugger)
 {
-    Mapping::MappingIterator* mappings = debugger->getProcess()->getMappings();
-    if (mappings == nullptr)
-        return 0;
-
-    // Iterate over mappings
-    Mapping* mapping = nullptr;
-    while ((mapping = Mapping::next(mappings)) != nullptr)
-    {
-        if (mapping->is_x)
-        {
-            void* address = mapping->search({ 0xFF, 0xE4 });
-            if (address != nullptr)
-                Log::success(VerbosityLevel::Standard, "Found JMP ESP at 0x%lx\n", address);
-            else
-                Log::error(VerbosityLevel::Standard, "Fuzzer failed to find JMP ESP\n");
-            
-            Mapping::freeAll(mappings);
-            return address;
-        }
-    }
-    Mapping::freeAll(mappings);
-    return nullptr;
+    Process* process = debugger->getProcess();
+    void* address = process->search({ 0xFF, 0xE4 });
+    if (address != nullptr)
+        Log::success(VerbosityLevel::Standard, "Found JMP ESP at 0x%lx\n", address);
+    return address;
 }
 
 int Fuzzer::getLength()

@@ -89,6 +89,8 @@ int main(int argc, char* argv[])
     std::string payloadFile = program.get<std::string>("--payload-file");
     if (!payloadFile.empty())
     {
+        Log::info(VerbosityLevel::Verbose, "Reading custom payload file %s\n", payloadFile.c_str());
+
         rawPayload = File::readAllBytes(payloadFile, &rawPayloadSize);
         if (rawPayload == nullptr)
         {
@@ -112,6 +114,9 @@ int main(int argc, char* argv[])
         // Get built-in payload
         std::string payloadType = program.get<std::string>("--payload");
         Application::exploitName = payloadType;
+
+        Log::info(VerbosityLevel::Verbose, "Getting built-in \"%s\" payload\n", payloadType.c_str());
+
         if (payloadType == "execute")
             rawPayload = Execute::getPayload(&rawPayloadSize, program);
         else if (payloadType == "reverse-shell")

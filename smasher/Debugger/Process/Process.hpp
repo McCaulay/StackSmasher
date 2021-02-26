@@ -23,6 +23,7 @@ public:
     Mapping::MappingIterator* getMappings();
     uint8_t* read(void* address, size_t length);
     void write(void* address, uint8_t* buffer, size_t length);
+    void* search(std::vector<uint8_t> pattern);
 private:
     pid_t id;
 };

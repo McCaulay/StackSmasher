@@ -55,14 +55,14 @@ void BadCharacters::handle(Debugger* debugger)
                 if (!BadCharacters::hitInitialBreakpoint)
                 {
                     BadCharacters::hitInitialBreakpoint = true;
-                    Log::info(VerbosityLevel::Debug, "Adding breakpoint to JMP ESP (0x%04x)\n", Application::jmpEsp);
+                    Log::info(VerbosityLevel::Debug, "Adding breakpoint to JMP ESP (0x%x)\n", Application::jmpEsp);
                     debugger->addBreakpoint(Application::jmpEsp);
                     debugger->pContinue();
                     continue;
                 }
 
                 // Otherwise we have hit JMP ESP
-                Log::info(VerbosityLevel::Debug, "Hit breakpoint at JMP ESP (0x%04x)\n", Application::jmpEsp);
+                Log::info(VerbosityLevel::Debug, "Hit breakpoint at JMP ESP (0x%x)\n", Application::jmpEsp);
 
                 // Check each value of the bad characters.
                 user_regs_struct registers;
@@ -87,14 +87,14 @@ void BadCharacters::handle(Debugger* debugger)
                         // Skip if bad character has already been found
                         if (std::find(Application::badCharacters.begin(), Application::badCharacters.end(), (uint8_t)(i + j)) != Application::badCharacters.end())
                         {
-                            Log::info(VerbosityLevel::Debug, "Skipping %01x as it is an existing bad character\n", (uint8_t)(i + j));
+                            Log::info(VerbosityLevel::VeryVerbose, "Skipping 0x%02x as it is an existing bad character\n", (uint8_t)(i + j));
                             continue;
                         }
 
                         // If bad character, log and rerun.
                         if (i + j != byte)
                         {
-                            Log::success(VerbosityLevel::Debug, "Found %01x as a new bad character\n", (uint8_t)(i + j));
+                            Log::success(VerbosityLevel::Verbose, "Found 0x%02x as a new bad character\n", (uint8_t)(i + j));
                             Application::badCharacters.push_back(i + j);
                             debugger->pKill();
                             return;
