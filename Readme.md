@@ -51,13 +51,19 @@ sudo bash -c "echo 2 > /proc/sys/kernel/randomize_va_space"
 ```
 
 ## Payloads
-There are currently two payloads in this project.
+There are currently four payloads in this project.
 
 ### sh.bin
 sh.bin is a simple shell which executes the /bin/sh application. This application can be easily modified in the payloads/sh.asm file, and then recompiled.
 
+### bind-shell.bin
+bind-shell.bin will listen for a connection port 1337. This can be changed in payloads/bind-shell.asm and then recompiled.
+
 ### reverse-shell.bin
-reverse-shell.bin will connect to a shell listening on ip 1337 and port 1337. This can be changed in payloads/reverse-shell.asm and then recompiled.
+reverse-shell.bin will connect to a shell listening on ip 127.0.0.1 and port 1337. This can be changed in payloads/reverse-shell.asm and then recompiled.
+
+### shutdown.bin
+shutdown.bin will automatically shut down the computer when executed.
 
 ## Compiling
 To compile the applications as 32 bit, you may need to install gcc-multilib.
