@@ -51,3 +51,17 @@ uint8_t* File::readBytes(std::string filepath, size_t length)
 
     return data;
 }
+
+void File::writeString(std::string filepath, std::string content)
+{
+    // Open file
+    FILE* file = fopen(filepath.c_str(), "w");
+    if (file == nullptr)
+        return;
+
+    // Write content into file
+    fwrite(content.c_str(), content.length(), 1, file);
+
+    // Close file
+    fclose(file);
+}

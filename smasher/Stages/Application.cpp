@@ -1,8 +1,10 @@
 #include "Stages/Application.hpp"
 
+std::string Application::name = "";
 size_t Application::eipOffset = std::string::npos;
 void* Application::jmpEsp = nullptr;
 std::vector<uint8_t> Application::badCharacters = { 0x00 };
+std::string Application::shell = "";
 
 bool Application::isAslrEnabled()
 {

