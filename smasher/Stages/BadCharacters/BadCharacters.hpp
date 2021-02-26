@@ -14,7 +14,7 @@ public:
 private:
     static std::string getPayload();
 private:
-    static uint8_t current;
+    static uint32_t current;
     static bool hitInitialBreakpoint;
     static bool completed;
 };

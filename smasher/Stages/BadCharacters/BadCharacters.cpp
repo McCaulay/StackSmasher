@@ -1,7 +1,7 @@
 #include "Stages/BadCharacters/BadCharacters.hpp"
 
 bool BadCharacters::hitInitialBreakpoint = false;
-uint8_t BadCharacters::current = 1;
+uint32_t BadCharacters::current = 1;
 bool BadCharacters::completed = false;
 
 bool BadCharacters::run(std::string application)
@@ -12,7 +12,15 @@ bool BadCharacters::run(std::string application)
     while (!BadCharacters::completed)
     {
         BadCharacters::hitInitialBreakpoint = false;
+        Log::info(VerbosityLevel::Debug, "Rerunning application to re-check bad characters...\n");
         Debugger::exec(application, { BadCharacters::getPayload() }, BadCharacters::handle);
+        BadCharacters::current++;
+
+        if (BadCharacters::current > 255)
+        {
+            Log::error(VerbosityLevel::Standard, "Failed to determine the bad characters for this application.\n");
+            return false;
+        }
     }
 
     // Output the found bad characters
@@ -47,12 +55,15 @@ void BadCharacters::handle(Debugger* debugger)
                 if (!BadCharacters::hitInitialBreakpoint)
                 {
                     BadCharacters::hitInitialBreakpoint = true;
+                    Log::info(VerbosityLevel::Debug, "Adding breakpoint to JMP ESP (0x%04x)\n", Application::jmpEsp);
                     debugger->addBreakpoint(Application::jmpEsp);
                     debugger->pContinue();
                     continue;
                 }
 
                 // Otherwise we have hit JMP ESP
+                Log::info(VerbosityLevel::Debug, "Hit breakpoint at JMP ESP (0x%04x)\n", Application::jmpEsp);
+
                 // Check each value of the bad characters.
                 user_regs_struct registers;
                 debugger->getRegisters(&registers);
@@ -75,11 +86,15 @@ void BadCharacters::handle(Debugger* debugger)
                         
                         // Skip if bad character has already been found
                         if (std::find(Application::badCharacters.begin(), Application::badCharacters.end(), (uint8_t)(i + j)) != Application::badCharacters.end())
+                        {
+                            Log::info(VerbosityLevel::Debug, "Skipping %01x as it is an existing bad character\n", (uint8_t)(i + j));
                             continue;
+                        }
 
                         // If bad character, log and rerun.
                         if (i + j != byte)
                         {
+                            Log::success(VerbosityLevel::Debug, "Found %01x as a new bad character\n", (uint8_t)(i + j));
                             Application::badCharacters.push_back(i + j);
                             debugger->pKill();
                             return;
