@@ -6,10 +6,21 @@ void Debugger::exec(std::string path, std::vector<std::string> arguments, void (
     if (child == 0)
     {
         ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-        Process::execFork(path, arguments);
+        
+        // Redirect stdout and stderr to /dev/null
+        int devnull = open("/dev/null", O_WRONLY);
+        dup2(devnull, 1); // stdout
+        dup2(devnull, 2); // stderr
+        close(devnull);
+
+        Process::exec(path, arguments);
+        exit(0);
         return;
     }
-    
+
+    Log::info(VerbosityLevel::Debug, "Debugger spawned child process: %i\n", child);
+
+    Application::processId = child;
     handler(new Debugger(new Process(child)));
 }
 

@@ -29,7 +29,7 @@ $(SHUTDOWN): payload/shutdown.asm
 	nasm -o $(SHUTDOWN) -fbin payload/shutdown.asm
 
 $(VULNEABLE): vulnerable/main.c
-	gcc -o $(VULNEABLE) vulnerable/main.c -m32 -fno-stack-protector -z execstack -w
+	gcc -o $(VULNEABLE) vulnerable/main.c -m32 -fno-stack-protector -z execstack -no-pie
 
 $(XOR): encoders/xor.asm
 	nasm -o $(XOR) -fbin encoders/xor.asm

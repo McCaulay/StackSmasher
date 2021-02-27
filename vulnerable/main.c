@@ -1,12 +1,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// A dummy function to contain the JMP ESP function.
-void dummy()
-{
-    __asm__("jmp %esp\n\t");
-}
-
 // Remove all occurances of the given character `garbage` from the input string `str`.
 //
 // `str` The string to have a character removed.

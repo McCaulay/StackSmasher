@@ -65,3 +65,37 @@ void File::writeString(std::string filepath, std::string content)
     // Close file
     fclose(file);
 }
+
+std::string File::getPathFromFilepath(std::string filepath)
+{
+    size_t lastSlash = filepath.find_last_of("/");
+    return lastSlash != std::string::npos ? filepath.substr(0, lastSlash) : filepath;
+}
+
+std::string File::getFilenameFromFilepath(std::string filepath)
+{
+    size_t lastSlash = filepath.find_last_of("/");
+    return lastSlash != std::string::npos ? filepath.substr(lastSlash + 1, filepath.length()) : filepath;
+}
+
+std::string File::getFileFromFilename(std::string filename)
+{
+    size_t lastDotIndex = filename.find_last_of("."); 
+    return lastDotIndex != std::string::npos ? filename.substr(0, lastDotIndex) : filename;
+}
+
+std::string File::getExtensionFromFilename(std::string filename)
+{
+    size_t lastDotIndex = filename.find_last_of("."); 
+    return lastDotIndex != std::string::npos ? filename.substr(lastDotIndex + 1, filename.length()) : filename;
+}
+
+std::string File::getFileFromFilepath(std::string filepath)
+{
+    return File::getFileFromFilename(File::getFilenameFromFilepath(filepath));
+}
+
+std::string File::getExtensionFromFilepathame(std::string filepath)
+{
+    return File::getExtensionFromFilename(File::getFilenameFromFilepath(filepath));
+}

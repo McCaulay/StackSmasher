@@ -10,32 +10,10 @@ It will rerun the application many times to fuzz the input until a segmentation 
 
 ## Running StackSmasher
 ```sh
-./smasher vulnerable
+./smasher vulnerable -e
 ```
 
-Example Output:
-```
-   _____ __             __   _____                      __             
-  / ___// /_____ ______/ /__/ ___/____ ___  ____ ______/ /_  ___  _____
-  \__ \/ __/ __ `/ ___/ //_/\__ \/ __ `__ \/ __ `/ ___/ __ \/ _ \/ ___/
- ___/ / /_/ /_/ / /__/ ,<  ___/ / / / / / / /_/ (__  ) / / /  __/ /    
-/____/\__/\__,_/\___/_/|_|/____/_/ /_/ /_/\__,_/____/_/ /_/\___/_/     
-                                                                       
-                    By https://github.com/McCaulay                     
-
-[*] Fuzzing EIP and finding JMP ESP...
-[+] Found JMP ESP at 0x565561fe
-[+] EIP found at offset 0x51e with a padding length of 0x530
-[*] Finding bad characters...
-[+] Found 4 bad characters: \x00\x0a\x0d\x43
-[*] XOR encoding payload...
-[+] Executing application with payload...
-_________________________________________
-
-Hello AAAAAAAAAAAAAAAAAAAA...(truncated)
-$ pwd
-/home/mccaulay/StackSmasher/bin
-```
+![StackSmasher](https://user-images.githubusercontent.com/31845045/109390832-ca443180-790b-11eb-904c-67c6b34204ff.png)
 
 Help:
 ```
@@ -53,7 +31,7 @@ Optional arguments:
 -n --nops             	The number of NOPs to put in the NOP sled before the shell. [default: 20]
 -q --quiet            	Do not print the start header. [default: false]
 -e --exploit          	Automatically run the full payload against the application. [default: false]
--s --script           	Save the exploit as a script for the given language. [python, go, c] [default: ""]
+-s --script           	Save the exploit as a script for the given language. [python, go, c, ruby] [default: ""]
 -sf --script-filename 	The filename without extension the script should be saved as if --script is passed. [default: ""]
 --binary              	The binary the application should execute if a built-in payload is selected. [default: "/bin/sh"]
 --shell-ip            	The IP address a reverse shell should connect to. [default: "127.0.0.1"]
@@ -65,19 +43,6 @@ Optional arguments:
 
 ## Limitations
 Various settings must be disabled for this to work including DEP, NX, and ASLR. ASLR needs to be done manually using the following script. This application also only works against 32 bit applications.
-
-## ASLR
-ASLR must be disabled to test this application.
-
-### Disable ASLR
-```sh
-sudo bash -c "echo 0 > /proc/sys/kernel/randomize_va_space"
-```
-
-### Enable ASLR
-```sh
-sudo bash -c "echo 2 > /proc/sys/kernel/randomize_va_space"
-```
 
 ## Payloads
 There are currently four payloads in this project.

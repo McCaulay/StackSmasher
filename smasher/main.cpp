@@ -15,6 +15,15 @@
 #include "Encoder/XorEncoder.hpp"
 #include "Stages/Fuzzer/Fuzzer.hpp"
 #include "Stages/BadCharacters/BadCharacters.hpp"
+#include "Stages/Protection/Protection.hpp"
+
+int freeAll(int exitCode)
+{
+    if (Application::mappings != nullptr)
+        Mapping::freeAll(Application::mappings);
+
+    return exitCode;
+}
 
 int main(int argc, char* argv[])
 {
@@ -55,7 +64,7 @@ int main(int argc, char* argv[])
     catch (const std::runtime_error& err) {
         std::cout << err.what() << std::endl << std::endl;
         std::cout << program;
-        exit(0);
+        return freeAll(0);
     }
 
     Log::verbose = (VerbosityLevel)program.get<int>("--verbose");
@@ -65,21 +74,18 @@ int main(int argc, char* argv[])
     // Header
     if (program["--quiet"] == false)
     {
-        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "   _____ __             __   " << (Log::colour ? LOG_COLOUR_GREEN : "") << "_____                      __             " << std::endl;
-        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "  / ___// /_____ ______/ /__" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/ ___/____ ___  ____ ______/ /_  ___  _____" << std::endl;
-        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "  \\__ \\/ __/ __ `/ ___/ //_/" << (Log::colour ? LOG_COLOUR_GREEN : "") << "\\__ \\/ __ `__ \\/ __ `/ ___/ __ \\/ _ \\/ ___/" << std::endl;
-        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << " ___/ / /_/ /_/ / /__/ ,<  " << (Log::colour ? LOG_COLOUR_GREEN : "") << "___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
-        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "/____/\\__/\\__,_/\\___/_/|_|" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
-        std::cout << (Log::colour ? LOG_COLOUR_NONE : "") << "                                                                       " << std::endl;
-        std::cout << "                    By https://github.com/" << (Log::colour ? LOG_COLOUR_PURPLE : "") << "McCaulay" << (Log::colour ? LOG_COLOUR_NONE : "") << "                     " << std::endl << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "          _____ __             __   " << (Log::colour ? LOG_COLOUR_GREEN : "") << "_____                      __             " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "         / ___// /_____ ______/ /__" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/ ___/____ ___  ____ ______/ /_  ___  _____" << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "         \\__ \\/ __/ __ `/ ___/ //_/" << (Log::colour ? LOG_COLOUR_GREEN : "") << "\\__ \\/ __ `__ \\/ __ `/ ___/ __ \\/ _ \\/ ___/" << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "        ___/ / /_/ /_/ / /__/ ,<  " << (Log::colour ? LOG_COLOUR_GREEN : "") << "___/ / / / / / / /_/ (__  ) / / /  __/ /    " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_BLUE : "") << "       /____/\\__/\\__,_/\\___/_/|_|" << (Log::colour ? LOG_COLOUR_GREEN : "") << "/____/_/ /_/ /_/\\__,_/____/_/ /_/\\___/_/     " << std::endl;
+        std::cout << (Log::colour ? LOG_COLOUR_NONE : "") << "                                                                              " << std::endl;
+        std::cout << "                           By https://github.com/" << (Log::colour ? LOG_COLOUR_PURPLE : "") << "McCaulay" << (Log::colour ? LOG_COLOUR_NONE : "") << "                     " << std::endl << std::endl;
     }
 
-    // Ensure ASLR is disabled
-    if (program["--skip-aslr-check"] == false && Application::isAslrEnabled())
-    {
-        Log::error(VerbosityLevel::Standard, "ASLR is enabled but not supported by this application.\n");
-        return 3;
-    }
+    // Run the protection checks
+    if (!Protection::run(Application::name) && program["--skip-aslr-check"] == false)
+        return freeAll(1);
 
     // Payload variables
     size_t rawPayloadSize = 0;
@@ -95,19 +101,11 @@ int main(int argc, char* argv[])
         if (rawPayload == nullptr)
         {
             Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
-            return 4;
+            return freeAll(2);
         }
 
         // Set exploitName, eg: from /home/kali/play-sound.bin -> play-sound
-        size_t lastDotIndex = payloadFile.find_last_of("."); 
-        Application::exploitName = lastDotIndex != std::string::npos ? payloadFile.substr(0, lastDotIndex) : payloadFile; 
-
-        size_t lastSlashIndex = payloadFile.find_last_of("/"); 
-        if (lastSlashIndex != std::string::npos)
-        {
-            lastSlashIndex++;
-            Application::exploitName = Application::exploitName.substr(lastSlashIndex, Application::exploitName.length() - lastSlashIndex);
-        }
+        Application::exploitName = File::getFileFromFilepath(payloadFile);
     }
     else
     {
@@ -129,13 +127,13 @@ int main(int argc, char* argv[])
 
     // Run the fuzzer to find EIP
     if (!Fuzzer::run(Application::name))
-        return 5;
+        return freeAll(3);
 
     // Find bad characters
     if (program["--skip-encoding"] == false)
     {
         if (!BadCharacters::run(Application::name))
-            return 5;
+            return freeAll(4);
 
         // Encode shell
         Log::info(VerbosityLevel::Standard, "XOR encoding payload...\n");
@@ -190,5 +188,5 @@ int main(int argc, char* argv[])
         Log::success(VerbosityLevel::Standard, "Executing application with payload...\n_________________________________________\n\n");
         Process::exec(Application::name, { payload });
     }
-    return 0;
+    return freeAll(0);
 }

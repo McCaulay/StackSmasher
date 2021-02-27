@@ -14,9 +14,9 @@ implied warranty.
 
 #include "Debugger/Process/Mapping/Mapping.hpp"
 
-Mapping::MappingIterator* Mapping::parse(int pid)
+MappingIterator* Mapping::parse(int pid)
 {
-    Mapping::MappingIterator* maps_it = (Mapping::MappingIterator*)malloc(sizeof(Mapping::MappingIterator));
+    MappingIterator* maps_it = (MappingIterator*)malloc(sizeof(MappingIterator));
     char filepath[500];
     if (pid >= 0)
         sprintf(filepath,"/proc/%d/maps", pid);
@@ -40,9 +40,6 @@ Mapping::MappingIterator* Mapping::parse(int pid)
 
         // Allocate a node
         tmp = (Mapping*)malloc(sizeof(Mapping));
-
-        // Set the process id
-        tmp->processId = pid;
 
         // Fill the node
         Mapping::splitLine(buf, addr1, addr2, perm, offset, dev, inode, pathname);
@@ -74,6 +71,10 @@ Mapping::MappingIterator* Mapping::parse(int pid)
         // Pathname
         strcpy(tmp->pathname, pathname);
         tmp->nextItem = nullptr;
+
+        tmp->stackCanary = tmp->isStackCanaryEnabled();
+        tmp->nx = tmp->isNxEnabled();
+        tmp->pie = tmp->isPieEnabled();
         
         // Attach the node
         if (ind==0)
@@ -95,7 +96,7 @@ Mapping::MappingIterator* Mapping::parse(int pid)
     return maps_it;
 }
 
-Mapping* Mapping::next(Mapping::MappingIterator* iterator)
+Mapping* Mapping::next(MappingIterator* iterator)
 {
     if (iterator->current == NULL)
         return NULL;
@@ -104,7 +105,7 @@ Mapping* Mapping::next(Mapping::MappingIterator* iterator)
     return p_current;
 }
 
-void Mapping::freeAll(Mapping::MappingIterator* iterator)
+void Mapping::freeAll(MappingIterator* iterator)
 {
     Mapping* maps_list = iterator->head;
     if (maps_list == NULL)
@@ -202,7 +203,7 @@ void Mapping::splitLine(char* buf, char* addr1, char* addr2, char* perm, char* o
 
 std::string Mapping::getMemoryFile()
 {
-    return "/proc/" + (this->processId >= 0 ? std::to_string(this->processId) : "self") + "/mem";
+    return "/proc/" + (Application::processId >= 0 ? std::to_string(Application::processId) : "self") + "/mem";
 }
 
 uint8_t* Mapping::read(void* address, size_t length)
@@ -214,6 +215,7 @@ uint8_t* Mapping::read(void* address, size_t length)
     void* buffer = malloc(length);
     pread(memory, buffer, length, (off_t)address);
     close(memory);
+
     return (uint8_t*)buffer;
 }
 
@@ -265,4 +267,89 @@ void* Mapping::search(std::vector<uint8_t> pattern)
         buffer = nullptr;
     }
     return nullptr;
+}
+
+ProtectionState Mapping::isStackCanaryEnabled()
+{
+    if (std::string(this->pathname).find("/") == std::string::npos)
+        return ProtectionState::NotApplicable;
+
+    std::string filepath = std::string(this->pathname);
+    std::string output = Process::execWithOutput("/usr/bin/readelf", { "-W", "-s", filepath });
+    return output.find("__stack_chk_fail") != std::string::npos || output.find("__intel_security_cookie") != std::string::npos ? ProtectionState::Enabled : ProtectionState::Disabled;
+}
+
+ProtectionState Mapping::isNxEnabled()
+{
+    if (std::string(this->pathname).find("/") == std::string::npos)
+        return ProtectionState::NotApplicable;
+    
+    std::string filepath = std::string(this->pathname);
+    std::string output = Process::execWithOutput("/usr/bin/readelf", { "-W", "-l", filepath });
+
+    if (output.find("GNU_STACK") == std::string::npos)
+        return ProtectionState::Disabled;
+
+    std::string line = String::getLineWithText(output, "GNU_STACK");
+    if (line.find("RWE") != std::string::npos)
+        return ProtectionState::Disabled;
+
+    return ProtectionState::Enabled;
+}
+
+ProtectionState Mapping::isPieEnabled()
+{
+    if (std::string(this->pathname).find("/") == std::string::npos)
+        return ProtectionState::NotApplicable;
+
+    std::string filepath = std::string(this->pathname);
+    std::string output = Process::execWithOutput("/usr/bin/readelf", { "-W", "-h", filepath });
+
+    std::string line = String::getLineWithText(output, "Type:");
+    if (line.find("EXEC") != std::string::npos)
+        return ProtectionState::Disabled;
+    
+    if (line.find("DYN") != std::string::npos)
+        return ProtectionState::Enabled;
+
+    return ProtectionState::Disabled;
+}
+
+std::string Mapping::getProtectionStateAsString(ProtectionState state)
+{
+    std::string value = "";
+
+    if (Log::colour)
+    {
+        switch (state)
+        {
+            case ProtectionState::NotApplicable:
+                value += LOG_COLOUR_ORANGE;
+                break;
+            case ProtectionState::Enabled:
+                value += LOG_COLOUR_GREEN;
+                break;
+            case ProtectionState::Disabled:
+                value += LOG_COLOUR_RED;
+                break;
+        }
+    }
+
+    switch (state)
+    {
+        case ProtectionState::NotApplicable:
+            value += "N/A     ";
+            break;
+        case ProtectionState::Enabled:
+            value += "Enabled ";
+            break;
+        case ProtectionState::Disabled:
+            value += "Disabled";
+            break;
+    }
+
+    if (Log::colour)
+        value += LOG_COLOUR_NONE;
+
+    return value;
 }
