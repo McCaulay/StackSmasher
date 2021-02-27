@@ -68,9 +68,16 @@ void Fuzzer::handle(Debugger* debugger)
 void* Fuzzer::findJumpEsp(Debugger* debugger)
 {
     Process* process = debugger->getProcess();
-    void* address = process->search({ 0xFF, 0xE4 });
+    void* address = process->search({ 0xFF, 0xE4 }); // JMP ESP
     if (address != nullptr)
+    {
         Log::success(VerbosityLevel::Standard, "Found JMP ESP at 0x%lx\n", address);
+        return address;
+    }
+
+    address = process->search({ 0xFF, 0xD4 }); // CALL ESP
+    if (address != nullptr)
+        Log::success(VerbosityLevel::Standard, "Found CALL ESP at 0x%lx\n", address);
     return address;
 }
 

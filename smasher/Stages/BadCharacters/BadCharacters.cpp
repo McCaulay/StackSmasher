@@ -50,19 +50,19 @@ void BadCharacters::handle(Debugger* debugger)
             // If we have hit a trap
             if (status.getPauseSignal() == SIGTRAP)
             {
-                // If it's the initial breakpoint, add a breakpoint on JMP ESP
+                // If it's the initial breakpoint, add a breakpoint on JMP / CALL ESP
                 // then continue.
                 if (!BadCharacters::hitInitialBreakpoint)
                 {
                     BadCharacters::hitInitialBreakpoint = true;
-                    Log::info(VerbosityLevel::Debug, "Adding breakpoint to JMP ESP (0x%x)\n", Application::jmpEsp);
+                    Log::info(VerbosityLevel::Debug, "Adding breakpoint to JMP / CALL ESP (0x%x)\n", Application::jmpEsp);
                     debugger->addBreakpoint(Application::jmpEsp);
                     debugger->pContinue();
                     continue;
                 }
 
                 // Otherwise we have hit JMP ESP
-                Log::info(VerbosityLevel::Debug, "Hit breakpoint at JMP ESP (0x%x)\n", Application::jmpEsp);
+                Log::info(VerbosityLevel::Debug, "Hit breakpoint at JMP / CALL ESP (0x%x)\n", Application::jmpEsp);
 
                 // Check each value of the bad characters.
                 user_regs_struct registers;
