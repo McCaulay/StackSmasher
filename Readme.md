@@ -10,7 +10,7 @@ It will rerun the application many times to fuzz the input until a segmentation 
 
 ## Running StackSmasher
 ```sh
-./smasher vulnerable -e
+./smasher vulnerable-argument -e
 ```
 
 ![StackSmasher](https://user-images.githubusercontent.com/31845045/109390832-ca443180-790b-11eb-904c-67c6b34204ff.png)
@@ -83,3 +83,4 @@ make
 - [ ] Support more encoders.
 - [ ] Ret2Libc
 - [ ] Windows
+- [ ] Crossfire Server (https://www.exploit-db.com/exploits/1582)
