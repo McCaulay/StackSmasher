@@ -16,7 +16,7 @@ uint8_t* File::readAllBytes(std::string filepath, size_t* length)
     size_t len = ftell(file);
 
     // Allocate memory
-    uint8_t* data = (uint8_t*)malloc(len);
+    uint8_t* data = new uint8_t[len];
 
     // Read file into memory
     rewind(file);
@@ -40,7 +40,7 @@ uint8_t* File::readBytes(std::string filepath, size_t length)
         return nullptr;
 
     // Allocate memory
-    uint8_t* data = (uint8_t*)malloc(length);
+    uint8_t* data = new uint8_t[length];
 
     // Read file into memory
     rewind(file);

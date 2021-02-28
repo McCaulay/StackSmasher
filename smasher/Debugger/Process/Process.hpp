@@ -18,7 +18,6 @@ private:
     static std::vector<char*> getArguments(std::string app, std::vector<std::string> arguments);
 public:
     Process(pid_t pid);
-    ~Process();
     pid_t getId();
     ProcessState wait();
     MappingIterator* getMappings();

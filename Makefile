@@ -1,9 +1,10 @@
 SMASHER = ./bin/smasher
 RSHELL = ./bin/payloads/reverse-shell.bin
 BSHELL = ./bin/payloads/bind-shell.bin
-SH = ./bin/payloads/sh.bin
+EXECUTE = ./bin/payloads/execute.bin
 SHUTDOWN = ./bin/payloads/shutdown.bin
-VULNEABLE = ./bin/vulnerable
+ARGUMENT = ./bin/vulnerable-argument
+REMOTE = ./bin/vulnerable-remote
 XOR = ./bin/encoders/xor.bin
 
 RM = rm -f
@@ -11,7 +12,7 @@ RM = rm -f
 SMASHER_SRC ?= ./smasher/
 SMASHER_CPP := $(shell find $(SMASHER_SRC) -name '*.cpp')
 
-all: $(SMASHER) $(RSHELL) $(BSHELL) $(SH) $(SHUTDOWN) $(VULNEABLE) $(XOR)
+all: $(SMASHER) $(RSHELL) $(BSHELL) $(EXECUTE) $(SHUTDOWN) $(ARGUMENT) $(REMOTE) $(XOR)
 
 $(SMASHER): smasher/main.cpp
 	g++ -o $(SMASHER) $(SMASHER_CPP) -m32 -std=c++17 -I./smasher
@@ -22,14 +23,17 @@ $(RSHELL): payload/reverse-shell.asm
 $(BSHELL): payload/bind-shell.asm
 	nasm -o $(BSHELL) -fbin payload/bind-shell.asm
 
-$(SH): payload/sh.asm
-	nasm -o $(SH) -fbin payload/sh.asm
+$(EXECUTE): payload/execute.asm
+	nasm -o $(EXECUTE) -fbin payload/execute.asm
 
 $(SHUTDOWN): payload/shutdown.asm
 	nasm -o $(SHUTDOWN) -fbin payload/shutdown.asm
 
-$(VULNEABLE): vulnerable/main.c
-	gcc -o $(VULNEABLE) vulnerable/main.c -m32 -fno-stack-protector -z execstack -no-pie
+$(ARGUMENT): vulnerable/argument.c
+	gcc -o $(ARGUMENT) vulnerable/argument.c -m32 -fno-stack-protector -z execstack -no-pie
+
+$(REMOTE): vulnerable/remote.c
+	gcc -o $(REMOTE) vulnerable/remote.c -m32 -fno-stack-protector -z execstack -no-pie
 
 $(XOR): encoders/xor.asm
 	nasm -o $(XOR) -fbin encoders/xor.asm
@@ -38,7 +42,8 @@ clean:
 	$(RM) $(SMASHER)
 	$(RM) $(RSHELL)
 	$(RM) $(BSHELL)
-	$(RM) $(SH)
+	$(RM) $(EXECUTE)
 	$(RM) $(SHUTDOWN)
-	$(RM) $(VULNEABLE)
+	$(RM) $(ARGUMENT)
+	$(RM) $(REMOTE)
 	$(RM) $(XOR)

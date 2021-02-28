@@ -41,6 +41,9 @@ std::string Process::execWithOutput(std::string path, std::vector<std::string> a
     // Wait for process state to exit
     process->wait();
 
+    // Cleanup
+    delete process;
+
     return std::string(output, bytesRead);
 }
 

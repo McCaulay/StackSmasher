@@ -28,7 +28,7 @@ uint8_t* ReverseShell::getPayload(size_t* length, argparse::ArgumentParser progr
     payload[26] = ((port >> (8* 1)) & 0xff); // Port High
     payload[27] = ((port >> (8* 0)) & 0xff); // Port Low
 
-    uint8_t* buffer = (uint8_t*)malloc(len);
+    uint8_t* buffer = new uint8_t[len];
     memcpy(buffer, payload, len);
     return buffer;
 }

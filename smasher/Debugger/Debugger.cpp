@@ -21,7 +21,13 @@ void Debugger::exec(std::string path, std::vector<std::string> arguments, void (
     Log::info(VerbosityLevel::Debug, "Debugger spawned child process: %i\n", child);
 
     Application::processId = child;
-    handler(new Debugger(new Process(child)));
+    Process* process = new Process(child);
+    Debugger* debugger = new Debugger(process);
+
+    handler(debugger);
+
+    delete process;
+    delete debugger;
 }
 
 Debugger::Debugger(Process* process)

@@ -16,7 +16,7 @@ implied warranty.
 
 MappingIterator* Mapping::parse(int pid)
 {
-    MappingIterator* maps_it = (MappingIterator*)malloc(sizeof(MappingIterator));
+    MappingIterator* maps_it = new MappingIterator;
     char filepath[500];
     if (pid >= 0)
         sprintf(filepath,"/proc/%d/maps", pid);
@@ -39,7 +39,7 @@ MappingIterator* Mapping::parse(int pid)
         fgets(buf,PROCMAPS_LINE_MAX_LENGTH,file);
 
         // Allocate a node
-        tmp = (Mapping*)malloc(sizeof(Mapping));
+        tmp = new Mapping;
 
         // Fill the node
         Mapping::splitLine(buf, addr1, addr2, perm, offset, dev, inode, pathname);
@@ -108,17 +108,19 @@ Mapping* Mapping::next(MappingIterator* iterator)
 void Mapping::freeAll(MappingIterator* iterator)
 {
     Mapping* maps_list = iterator->head;
-    if (maps_list == NULL)
+    if (maps_list == nullptr)
         return;
     Mapping* act=maps_list;
     Mapping* nxt=act->nextItem;
-    while (act != NULL)
+    while (act != nullptr)
     {
-        free(act);
+        delete act;
         act=nxt;
-        if (nxt != NULL)
+        if (nxt != nullptr)
             nxt = nxt->nextItem;
     }
+
+    delete iterator;
 }
 
 void Mapping::splitLine(char* buf, char* addr1, char* addr2, char* perm, char* offset, char* device, char* inode, char* pathname)
@@ -212,7 +214,7 @@ uint8_t* Mapping::read(void* address, size_t length)
     if (!memory)
         return nullptr;
 
-    void* buffer = malloc(length);
+    void* buffer = (void*)(new uint8_t[length]);
     pread(memory, buffer, length, (off_t)address);
     close(memory);
 
@@ -257,13 +259,13 @@ void* Mapping::search(std::vector<uint8_t> pattern)
 
             if (matches)
             {
-                free(buffer);
+                delete buffer;
                 buffer = nullptr;
                 return (void*)(address + j);
             }
         }
 
-        free(buffer);
+        delete buffer;
         buffer = nullptr;
     }
     return nullptr;

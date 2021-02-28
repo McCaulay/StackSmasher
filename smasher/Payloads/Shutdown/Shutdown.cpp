@@ -13,7 +13,7 @@ uint8_t* Shutdown::getPayload(size_t* length, argparse::ArgumentParser program)
         0x57, 0x53, 0x89, 0xe1, 0xb0, 0x0b, 0xcd, 0x80,
     };
 
-    uint8_t* buffer = (uint8_t*)malloc(len);
+    uint8_t* buffer = new uint8_t[len];
     memcpy(buffer, payload, len);
     return buffer;
 }

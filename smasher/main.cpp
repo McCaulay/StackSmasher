@@ -98,6 +98,7 @@ int main(int argc, char* argv[])
         Log::info(VerbosityLevel::Verbose, "Reading custom payload file %s\n", payloadFile.c_str());
 
         rawPayload = File::readAllBytes(payloadFile, &rawPayloadSize);
+
         if (rawPayload == nullptr)
         {
             Log::error(VerbosityLevel::Standard, "Failed to read the payload file.\n");
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
         Application::shell = std::string((char*)rawPayload, rawPayloadSize);
 
     // Free raw payload
-    free(rawPayload);
+    delete rawPayload;
     rawPayload = nullptr;
 
     // Setup the scripter if provided.

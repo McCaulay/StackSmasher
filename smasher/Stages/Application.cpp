@@ -13,6 +13,6 @@ bool Application::isSystemAslrEnabled()
 {
     uint8_t* bytes = File::readBytes("/proc/sys/kernel/randomize_va_space", 1);
     bool enabled = bytes[0] != '0';
-    free(bytes);
+    delete bytes;
     return enabled;
 }

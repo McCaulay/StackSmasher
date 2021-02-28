@@ -20,7 +20,7 @@ uint8_t* BindShell::getPayload(size_t* length, argparse::ArgumentParser program)
     payload[24] = ((port >> (8* 1)) & 0xff); // Port High
     payload[25] = ((port >> (8* 0)) & 0xff); // Port Low
 
-    uint8_t* buffer = (uint8_t*)malloc(len);
+    uint8_t* buffer = new uint8_t[len];
     memcpy(buffer, payload, len);
     return buffer;
 }
